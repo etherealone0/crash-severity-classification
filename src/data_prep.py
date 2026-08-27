@@ -104,6 +104,73 @@ def add_severity_class(df):
     return df
 
 
+# --- Feature selection and cleaning (Task 4) ---
+#
+# Kept columns and why:
+#   - Temperature(F), Visibility(mi), Wind_Speed(mph), Precipitation(in): core weather
+#     conditions at crash time. Numeric; missing values imputed with the median
+#     (Precipitation(in) is 28.5% missing, Wind_Speed(mph) 7.4%, the other two <3%).
+#   - 13 boolean road-feature flags (Junction, Traffic_Signal, Crossing, etc.): 0%
+#     missing, cast straight to int.
+#   - Hour (0-23): extracted from Start_Time, numeric, no imputation needed.
+#   - DayOfWeek: extracted from Start_Time, 7 categories -> one-hot (low cardinality).
+#   - State: 49 categories -> frequency-encoded (too high-cardinality for one-hot).
+#   - Weather_Condition: 101 categories -> frequency-encoded for the same reason as
+#     State; its 2.3% missing values are filled with the mode ("Fair") before encoding.
+#
+# Dropped:
+#   - Wind_Chill(F): 25.9% missing and redundant with Temperature(F).
+#   - everything not listed above is out of scope for this feature set.
+NUMERIC_FEATURES = ["Temperature(F)", "Visibility(mi)", "Wind_Speed(mph)", "Precipitation(in)"]
+
+BOOLEAN_FEATURES = [
+    "Amenity", "Bump", "Crossing", "Give_Way", "Junction", "No_Exit", "Railway",
+    "Roundabout", "Station", "Stop", "Traffic_Calming", "Traffic_Signal", "Turning_Loop",
+]
+
+ONEHOT_FEATURES = ["DayOfWeek"]
+FREQUENCY_FEATURES = ["State", "Weather_Condition"]
+
+
+def extract_time_features(df):
+    """Extract Hour (0-23, numeric) and DayOfWeek (categorical) from Start_Time."""
+    df = df.copy()
+    start_time = pd.to_datetime(df["Start_Time"], format="mixed", errors="coerce")
+    df["Hour"] = start_time.dt.hour
+    df["DayOfWeek"] = start_time.dt.day_name()
+    return df
+
+
+def select_and_clean_features(df):
+    """Build a fully numeric, null-free feature matrix. See comment block above for
+    which columns are kept/dropped and how each is imputed/encoded."""
+    df = extract_time_features(df)
+
+    for col in NUMERIC_FEATURES:
+        df[col] = df[col].fillna(df[col].median())
+
+    df["Weather_Condition"] = df["Weather_Condition"].fillna(df["Weather_Condition"].mode().iloc[0])
+
+    boolean_cols = df[BOOLEAN_FEATURES].astype(int)
+    onehot_cols = pd.get_dummies(df[ONEHOT_FEATURES], prefix=ONEHOT_FEATURES).astype(int)
+
+    freq_cols = pd.DataFrame(index=df.index)
+    for col in FREQUENCY_FEATURES:
+        freq_cols[f"{col}_freq"] = df[col].map(df[col].value_counts(normalize=True))
+
+    features = pd.concat(
+        [
+            df[NUMERIC_FEATURES + ["Hour"]],
+            boolean_cols,
+            onehot_cols,
+            freq_cols,
+            df[["severity_class"]],
+        ],
+        axis=1,
+    )
+    return features
+
+
 if __name__ == "__main__":
     df = load_sampled_data()
     print("Sample shape:", df.shape)
@@ -113,3 +180,14 @@ if __name__ == "__main__":
     df = add_severity_class(df)
     print("\nseverity_class value counts:")
     print(df["severity_class"].value_counts())
+
+    features = select_and_clean_features(df)
+    print("\nFeature matrix shape:", features.shape)
+    print("Total nulls:", int(features.isnull().sum().sum()))
+    print("Columns:", list(features.columns))
+
+    processed_dir = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
+    os.makedirs(processed_dir, exist_ok=True)
+    features_path = os.path.join(processed_dir, "features.parquet")
+    features.to_parquet(features_path, index=False)
+    print(f"\nWrote feature matrix to {features_path}")
