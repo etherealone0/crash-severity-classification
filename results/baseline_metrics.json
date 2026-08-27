@@ -1,0 +1,52 @@
+{
+  "accuracy": 0.804547513589692,
+  "macro_f1": 0.2972296406830717,
+  "per_class": {
+    "Minor": {
+      "precision": 0.804547513589692,
+      "recall": 1.0,
+      "f1-score": 0.8916889220492152,
+      "support": 63939.0
+    },
+    "Moderate": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 13443.0
+    },
+    "Severe": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 2090.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Minor",
+      "Moderate",
+      "Severe"
+    ],
+    "matrix": [
+      [
+        63939,
+        0,
+        0
+      ],
+      [
+        13443,
+        0,
+        0
+      ],
+      [
+        2090,
+        0,
+        0
+      ]
+    ]
+  },
+  "train_rows": 30001,
+  "train_rows_full_split": 317886,
+  "test_rows": 79472,
+  "note": "Trained on a 30001-row stratified subsample of the 317886-row training split; SVC(kernel='rbf') does not scale to the full split in practical time."
+}
