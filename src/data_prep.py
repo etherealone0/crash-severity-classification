@@ -6,6 +6,7 @@ import os
 import pandas as pd
 
 RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
+PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 SAMPLE_PATH = os.path.join(RAW_DIR, "us_accidents_sample.csv")
 KAGGLE_DATASET = "sobhanmoosavi/us-accidents"
 SAMPLE_SIZE = 400_000
@@ -171,6 +172,33 @@ def select_and_clean_features(df):
     return features
 
 
+def dedup_near_duplicates(df, lat_lng_decimals=3, time_round="min"):
+    """Drop near-duplicate crash records: same location (lat/lng rounded to ~100m)
+    and same timestamp rounded to the minute. A known artifact of this dataset,
+    which aggregates from multiple traffic APIs that can log the same crash twice.
+    """
+    key = pd.DataFrame(
+        {
+            "_lat": df["Start_Lat"].round(lat_lng_decimals),
+            "_lng": df["Start_Lng"].round(lat_lng_decimals),
+            "_time": pd.to_datetime(df["Start_Time"], format="mixed", errors="coerce").dt.floor(time_round),
+        }
+    )
+    dup_mask = key.duplicated(keep="first")
+    print(f"Duplicate check: {int(dup_mask.sum())} near-duplicate rows out of {len(df)}")
+    return df.loc[~dup_mask].reset_index(drop=True)
+
+
+def train_test_split_data(features, test_size=0.2, random_state=RANDOM_STATE):
+    """Stratify by severity_class so train/test class proportions match."""
+    from sklearn.model_selection import train_test_split
+
+    train, test = train_test_split(
+        features, test_size=test_size, stratify=features["severity_class"], random_state=random_state
+    )
+    return train.reset_index(drop=True), test.reset_index(drop=True)
+
+
 if __name__ == "__main__":
     df = load_sampled_data()
     print("Sample shape:", df.shape)
@@ -181,13 +209,28 @@ if __name__ == "__main__":
     print("\nseverity_class value counts:")
     print(df["severity_class"].value_counts())
 
+    df = dedup_near_duplicates(df)
+    print("Shape after dedup:", df.shape)
+
     features = select_and_clean_features(df)
     print("\nFeature matrix shape:", features.shape)
     print("Total nulls:", int(features.isnull().sum().sum()))
     print("Columns:", list(features.columns))
 
-    processed_dir = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
-    os.makedirs(processed_dir, exist_ok=True)
-    features_path = os.path.join(processed_dir, "features.parquet")
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    features_path = os.path.join(PROCESSED_DIR, "features.parquet")
     features.to_parquet(features_path, index=False)
     print(f"\nWrote feature matrix to {features_path}")
+
+    train, test = train_test_split_data(features)
+    print("\nTrain shape:", train.shape, "Test shape:", test.shape)
+    print("Train class proportions:")
+    print(train["severity_class"].value_counts(normalize=True).sort_index())
+    print("Test class proportions:")
+    print(test["severity_class"].value_counts(normalize=True).sort_index())
+
+    train_path = os.path.join(PROCESSED_DIR, "train.parquet")
+    test_path = os.path.join(PROCESSED_DIR, "test.parquet")
+    train.to_parquet(train_path, index=False)
+    test.to_parquet(test_path, index=False)
+    print(f"\nWrote {train_path}\nWrote {test_path}")
