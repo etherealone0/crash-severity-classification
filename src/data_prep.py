@@ -87,8 +87,29 @@ def load_sampled_data():
     return sample
 
 
+# The dataset's native Severity is 1-4, but we collapse it to 3 classes to match
+# the reference project's framing. Severity 1 is a tiny sliver of the data (under
+# 1% of rows) and represents the same "minor" real-world outcome as Severity 2, so
+# folding it in avoids a near-empty fourth class without changing what the classes mean:
+#   {1, 2} -> "Minor"    (little to no traffic impact)
+#   {3}    -> "Moderate" (significant delay)
+#   {4}    -> "Severe"   (major delay / most disruptive)
+SEVERITY_CLASS_MAP = {1: "Minor", 2: "Minor", 3: "Moderate", 4: "Severe"}
+
+
+def add_severity_class(df):
+    """Add a 3-class 'severity_class' column derived from the native 1-4 Severity."""
+    df = df.copy()
+    df["severity_class"] = df["Severity"].map(SEVERITY_CLASS_MAP)
+    return df
+
+
 if __name__ == "__main__":
     df = load_sampled_data()
     print("Sample shape:", df.shape)
     print("Severity value counts:")
     print(df["Severity"].value_counts().sort_index())
+
+    df = add_severity_class(df)
+    print("\nseverity_class value counts:")
+    print(df["severity_class"].value_counts())
