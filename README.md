@@ -61,18 +61,49 @@ minus 2,642 near-duplicate crash records):
 |---|---|---|---|---|---|
 | Baseline (no balancing) | 0.805 | 0.297 | 1.000 | 0.000 | 0.000 |
 | SMOTENC-balanced | 0.187 | 0.176 | 0.111 | 0.488 | 0.562 |
-| Tuned (Optuna) | 0.701 | 0.350 | 0.835 | 0.163 | 0.056 |
+| Tuned (Optuna) | 0.612 | 0.370 | 0.662 | 0.457 | 0.065 |
 
 - SMOTENC alone takes Severe-class recall from 0% to 56.2%, at the cost of
   overall macro-F1 (an untuned SVC overcorrects toward the minority classes).
-- Optuna tuning (20 trials, 3-fold CV) recovers macro-F1 to 0.350 -- better
-  than either untuned variant -- but trades away most of SMOTENC's Severe-recall
-  gain to get there, a real precision/recall tension worth knowing about rather
-  than hiding.
-- Top 5 SHAP features: **Temperature(F)**, **Hour**, **Wind_Speed(mph)**,
-  **DayOfWeek_Friday**, **Visibility(mi)** -- weather and time-of-day dominate
-  over road-feature flags. Cross-checked with permutation importance: the top 3
-  match exactly (just in a different order).
+- Optuna tuning (8 trials, 3-fold CV, objective evaluated honestly -- see
+  "CV leakage fix" below) recovers macro-F1 to 0.370, better than either
+  untuned variant, but trades away most of SMOTENC's Severe-recall gain to get
+  there (0.065 vs. 0.562) -- a real precision/recall tension worth knowing
+  about rather than hiding.
+- Top 5 SHAP features: **DayOfWeek_Friday**, **DayOfWeek_Thursday**,
+  **DayOfWeek_Wednesday**, **DayOfWeek_Saturday**, **DayOfWeek_Tuesday** -- this
+  particular tuned model (a low `gamma=0.00115`, very smooth decision boundary)
+  leans heavily on day-of-week. Cross-checked with permutation importance: only
+  1 of 5 features agree (`DayOfWeek_Saturday`), and permutation's importance
+  scores are an order of magnitude smaller than in earlier, higher-gamma
+  variants -- a real sign that this model's decisions are less sharply
+  attributable to individual features than the SHAP ranking alone suggests, not
+  a contradiction to paper over.
+
+## CV leakage fix (and why the numbers moved)
+
+An earlier version of `src/tune.py` applied SMOTENC once to the whole training
+subsample, then ran cross-validation on top of that already-resampled data.
+That leaks information: synthetic minority points generated from what became a
+validation fold's real neighbors can end up in the training fold (and vice
+versa), so folds aren't independent. The symptom was a CV macro-F1 during the
+search (~0.85) wildly higher than the honest held-out test score (0.350).
+
+The fix: `src/tune.py` now wraps SMOTENC and the SVC in an
+`imblearn.pipeline.Pipeline` and runs `cross_val_score` on the *original,
+imbalanced* training subsample. That pipeline gets cloned and refit inside
+`cross_val_score` for every fold, so SMOTENC only ever sees that fold's
+training rows -- validation folds stay real and untouched. After the fix,
+Optuna's best CV score (0.366) lands close to the true test score (0.370),
+which is the actual signal a leak-free search should produce.
+
+Two costs came with the fix, both handled and documented in `src/tune.py`:
+- Refitting SMOTENC per fold instead of once is 5-6x slower per trial, so the
+  trial count dropped from 20 to 8 to stay tractable.
+- A few (low-`C`, low-`gamma`) corners of the search make libsvm's solver
+  converge extremely slowly on this data -- one uncapped fit ran 2+ hours
+  before finishing at a mediocre score anyway. `SVC(..., max_iter=20_000)`
+  bounds worst-case time per fit without changing which regions score well.
 
 ## Notes on scale
 
@@ -80,11 +111,7 @@ minus 2,642 near-duplicate crash records):
 in practical time, especially once SMOTENC balances the classes (that makes the
 separation problem genuinely harder for libsvm). `src/train.py` stratify-
 subsamples the training split down to 8,000 rows before training/tuning, while
-always evaluating on the full, untouched test set. Separately, the Optuna CV
-score during tuning (~0.85) is optimistic: it's computed on folds carved out of
-already-SMOTENC-resampled data, where synthetic minority points can leak
-similarity across folds. The test-set macro-F1 (0.350) is the trustworthy
-number and is what's reported above.
+always evaluating on the full, untouched test set.
 
 ## Project structure
 

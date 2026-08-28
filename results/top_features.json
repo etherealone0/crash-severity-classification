@@ -1,27 +1,27 @@
 [
   {
-    "feature": "Temperature(F)",
-    "mean_abs_shap": 0.12238464421332888,
-    "plain_english": "outdoor temperature at crash time"
-  },
-  {
-    "feature": "Hour",
-    "mean_abs_shap": 0.11326926685983714,
-    "plain_english": "hour of day the crash occurred"
-  },
-  {
-    "feature": "Wind_Speed(mph)",
-    "mean_abs_shap": 0.10387937634993066,
-    "plain_english": "wind speed"
-  },
-  {
     "feature": "DayOfWeek_Friday",
-    "mean_abs_shap": 0.039915038650825456,
+    "mean_abs_shap": 0.2835766120995627,
     "plain_english": "crash occurred on a Friday"
   },
   {
-    "feature": "Visibility(mi)",
-    "mean_abs_shap": 0.03915407663037805,
-    "plain_english": "visibility distance"
+    "feature": "DayOfWeek_Thursday",
+    "mean_abs_shap": 0.225971068799136,
+    "plain_english": "crash occurred on a Thursday"
+  },
+  {
+    "feature": "DayOfWeek_Wednesday",
+    "mean_abs_shap": 0.2114746272549213,
+    "plain_english": "crash occurred on a Wednesday"
+  },
+  {
+    "feature": "DayOfWeek_Saturday",
+    "mean_abs_shap": 0.18733447130589762,
+    "plain_english": "crash occurred on a Saturday"
+  },
+  {
+    "feature": "DayOfWeek_Tuesday",
+    "mean_abs_shap": 0.1564527504322796,
+    "plain_english": "crash occurred on a Tuesday"
   }
 ]

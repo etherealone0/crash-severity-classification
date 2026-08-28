@@ -218,6 +218,10 @@ def final_evaluation():
             f"| {label} | {pc['precision']:.3f} | {pc['recall']:.3f} | {pc['f1-score']:.3f} | {int(pc['support'])} |"
         )
 
+    baseline_severe_recall = baseline["per_class"]["Severe"]["recall"]
+    smote_severe_recall = smote["per_class"]["Severe"]["recall"]
+    tuned_severe_recall = tuned["per_class"]["Severe"]["recall"]
+
     report = f"""# Final Model Evaluation
 
 Final tuned SVC (`models/final_svc.joblib`), evaluated on the held-out test set
@@ -227,9 +231,10 @@ Final tuned SVC (`models/final_svc.joblib`), evaluated on the held-out test set
 
 {comparison_table}
 
-Severe-class recall goes from 0% (baseline) to 56.2% (SMOTENC) to 5.6% (tuned):
-Optuna optimizes mean macro-F1 across CV folds, which favors getting Minor and
-Moderate right and trades away most of SMOTENC's Severe-recall gain to do it.
+Severe-class recall goes from {baseline_severe_recall:.1%} (baseline) to
+{smote_severe_recall:.1%} (SMOTENC) to {tuned_severe_recall:.1%} (tuned): Optuna
+optimizes mean macro-F1 across CV folds, which favors getting Minor and Moderate
+right and trades away most of SMOTENC's Severe-recall gain to do it.
 
 ## Final (tuned) model -- per-class metrics
 

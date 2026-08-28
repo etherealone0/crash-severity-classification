@@ -16,27 +16,27 @@ Every number referenced by the 4 resume bullets, in one place.
 |---|---|---|---|---|---|
 | Baseline (no balancing) | 0.805 | 0.297 | 1.000 | 0.000 | 0.000 |
 | SMOTENC-balanced | 0.187 | 0.176 | 0.111 | 0.488 | 0.562 |
-| Tuned (Optuna) | 0.701 | 0.350 | 0.835 | 0.163 | 0.056 |
+| Tuned (Optuna) | 0.612 | 0.370 | 0.662 | 0.457 | 0.065 |
 
 ## Key deltas
 
-- **Bullet 1 (headline):** macro-F1 35.0% across 3 severity classes on 397,358+ crash records
+- **Bullet 1 (headline):** macro-F1 37.0% across 3 severity classes on 397,358+ crash records
 - **Bullet 2 (SMOTENC):** Severe-class recall 0.0% (baseline) -> 56.2% (SMOTENC)
-- **Bullet 3 (tuning):** macro-F1 17.6% (Task 7, default params) -> 35.0% (Task 8, tuned), via Optuna over 20 trials of 3-fold CV (best params: {'C': 1.9151000143366523, 'gamma': 0.4920709465227078})
-- **Bullet 4 (interpretability):** top feature is Temperature(F) (outdoor temperature at crash time), across 200 test predictions, validated against permutation importance (3/5 top features agree)
+- **Bullet 3 (tuning):** macro-F1 17.6% (Task 7, default params) -> 37.0% (Task 8, tuned), via Optuna over 8 trials of 3-fold CV (best params: {'C': 21.368329072358772, 'gamma': 0.0011526449540315614})
+- **Bullet 4 (interpretability):** top feature is DayOfWeek_Friday (crash occurred on a Friday), across 200 test predictions, validated against permutation importance (1/5 top features agree)
 
 ## Top 5 SHAP features
 
 | Rank | Feature | Mean \|SHAP\| | Plain English |
 |---|---|---|---|
-| 1 | Temperature(F) | 0.1224 | outdoor temperature at crash time |
-| 2 | Hour | 0.1133 | hour of day the crash occurred |
-| 3 | Wind_Speed(mph) | 0.1039 | wind speed |
-| 4 | DayOfWeek_Friday | 0.0399 | crash occurred on a Friday |
-| 5 | Visibility(mi) | 0.0392 | visibility distance |
+| 1 | DayOfWeek_Friday | 0.2836 | crash occurred on a Friday |
+| 2 | DayOfWeek_Thursday | 0.2260 | crash occurred on a Thursday |
+| 3 | DayOfWeek_Wednesday | 0.2115 | crash occurred on a Wednesday |
+| 4 | DayOfWeek_Saturday | 0.1873 | crash occurred on a Saturday |
+| 5 | DayOfWeek_Tuesday | 0.1565 | crash occurred on a Tuesday |
 
 ## Permutation importance cross-check
 
-- SHAP top 5: ['Temperature(F)', 'Hour', 'Wind_Speed(mph)', 'DayOfWeek_Friday', 'Visibility(mi)']
-- Permutation top 5: ['Wind_Speed(mph)', 'Temperature(F)', 'Hour', 'DayOfWeek_Saturday', 'DayOfWeek_Monday']
-- Agreement: 3/5 features overlap -> ['Hour', 'Temperature(F)', 'Wind_Speed(mph)']
+- SHAP top 5: ['DayOfWeek_Friday', 'DayOfWeek_Thursday', 'DayOfWeek_Wednesday', 'DayOfWeek_Saturday', 'DayOfWeek_Tuesday']
+- Permutation top 5: ['DayOfWeek_Saturday', 'DayOfWeek_Monday', 'Hour', 'Amenity', 'Weather_Condition_freq']
+- Agreement: 1/5 features overlap -> ['DayOfWeek_Saturday']
