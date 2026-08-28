@@ -133,5 +133,68 @@ def run_shap_analysis():
     return top_features
 
 
+def get_shap_explain_sample(X_test, y_test):
+    """Reproduce the exact same 200-row sample used for SHAP, with its true labels."""
+    explain_sample = X_test.sample(n=SHAP_EXPLAIN_SIZE, random_state=RANDOM_STATE)
+    y_sample = y_test.loc[explain_sample.index]
+    return explain_sample, y_sample
+
+
+def run_permutation_importance():
+    """Task 11: cross-check SHAP's ranking with sklearn's permutation_importance on
+    the same test subset used for SHAP."""
+    from sklearn.inspection import permutation_importance
+
+    model, X_test, y_test = load_model_and_test()
+    explain_sample, y_sample = get_shap_explain_sample(X_test, y_test)
+
+    result = permutation_importance(
+        model, explain_sample, y_sample, scoring="f1_macro", n_repeats=10, random_state=RANDOM_STATE
+    )
+
+    order = np.argsort(result.importances_mean)[::-1]
+    ranked = [
+        {
+            "feature": explain_sample.columns[i],
+            "importance_mean": float(result.importances_mean[i]),
+            "importance_std": float(result.importances_std[i]),
+        }
+        for i in order
+    ]
+    top5_perm = ranked[:5]
+
+    with open(os.path.join(RESULTS_DIR, "top_features.json")) as f:
+        shap_top5 = json.load(f)
+    shap_names = [f["feature"] for f in shap_top5]
+    perm_names = [f["feature"] for f in top5_perm]
+    overlap = sorted(set(shap_names) & set(perm_names))
+
+    output = {
+        "top_5": top5_perm,
+        "full_ranking": ranked,
+        "shap_top_5": shap_names,
+        "permutation_top_5": perm_names,
+        "agreement_count": len(overlap),
+        "agreement_features": overlap,
+    }
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "permutation_importance.json")
+    with open(out_path, "w") as f:
+        json.dump(output, f, indent=2)
+    print(f"Wrote {out_path}")
+
+    print("\nPermutation importance top 5 (scoring=f1_macro, n_repeats=10):")
+    for i, feat in enumerate(top5_perm, 1):
+        print(f"  {i}. {feat['feature']} ({feat['importance_mean']:.4f} +/- {feat['importance_std']:.4f})")
+    print(f"\nSHAP top 5:        {shap_names}")
+    print(f"Permutation top 5: {perm_names}")
+    print(f"Agreement: {len(overlap)}/5 features overlap -> {overlap}")
+
+    return output
+
+
 if __name__ == "__main__":
     run_shap_analysis()
+    print("\n" + "=" * 60 + "\n")
+    run_permutation_importance()

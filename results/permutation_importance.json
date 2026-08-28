@@ -1,0 +1,186 @@
+{
+  "top_5": [
+    {
+      "feature": "Wind_Speed(mph)",
+      "importance_mean": 0.07053774862472233,
+      "importance_std": 0.02203246545706477
+    },
+    {
+      "feature": "Temperature(F)",
+      "importance_mean": 0.05618785482218959,
+      "importance_std": 0.023335742962757117
+    },
+    {
+      "feature": "Hour",
+      "importance_mean": 0.05254012214136457,
+      "importance_std": 0.025842140712178416
+    },
+    {
+      "feature": "DayOfWeek_Saturday",
+      "importance_mean": 0.026677120664523872,
+      "importance_std": 0.02093237062021475
+    },
+    {
+      "feature": "DayOfWeek_Monday",
+      "importance_mean": 0.022637424268779488,
+      "importance_std": 0.022459728222367772
+    }
+  ],
+  "full_ranking": [
+    {
+      "feature": "Wind_Speed(mph)",
+      "importance_mean": 0.07053774862472233,
+      "importance_std": 0.02203246545706477
+    },
+    {
+      "feature": "Temperature(F)",
+      "importance_mean": 0.05618785482218959,
+      "importance_std": 0.023335742962757117
+    },
+    {
+      "feature": "Hour",
+      "importance_mean": 0.05254012214136457,
+      "importance_std": 0.025842140712178416
+    },
+    {
+      "feature": "DayOfWeek_Saturday",
+      "importance_mean": 0.026677120664523872,
+      "importance_std": 0.02093237062021475
+    },
+    {
+      "feature": "DayOfWeek_Monday",
+      "importance_mean": 0.022637424268779488,
+      "importance_std": 0.022459728222367772
+    },
+    {
+      "feature": "Junction",
+      "importance_mean": 0.01543552145806581,
+      "importance_std": 0.012751984483468488
+    },
+    {
+      "feature": "DayOfWeek_Friday",
+      "importance_mean": 0.011236166396045633,
+      "importance_std": 0.019674317227662157
+    },
+    {
+      "feature": "DayOfWeek_Thursday",
+      "importance_mean": 0.010217114173625797,
+      "importance_std": 0.014346731995102143
+    },
+    {
+      "feature": "DayOfWeek_Sunday",
+      "importance_mean": 0.007792331901221905,
+      "importance_std": 0.007142732358343096
+    },
+    {
+      "feature": "Crossing",
+      "importance_mean": 0.004502768763215687,
+      "importance_std": 0.00577404894782746
+    },
+    {
+      "feature": "DayOfWeek_Wednesday",
+      "importance_mean": 0.00406995030649499,
+      "importance_std": 0.009136335715288515
+    },
+    {
+      "feature": "Weather_Condition_freq",
+      "importance_mean": 0.0019473780228793814,
+      "importance_std": 0.004760113182527476
+    },
+    {
+      "feature": "State_freq",
+      "importance_mean": 0.0011355000945458605,
+      "importance_std": 0.00506742471882735
+    },
+    {
+      "feature": "Stop",
+      "importance_mean": 0.0004051898725127401,
+      "importance_std": 0.00556292364190367
+    },
+    {
+      "feature": "Turning_Loop",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Bump",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Give_Way",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Roundabout",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Traffic_Calming",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Railway",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "No_Exit",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "Precipitation(in)",
+      "importance_mean": -0.0012168659304213681,
+      "importance_std": 0.001961753735800127
+    },
+    {
+      "feature": "Station",
+      "importance_mean": -0.0017469348697759346,
+      "importance_std": 0.0018762989943783412
+    },
+    {
+      "feature": "Amenity",
+      "importance_mean": -0.0019464022801252868,
+      "importance_std": 0.002619731175495357
+    },
+    {
+      "feature": "DayOfWeek_Tuesday",
+      "importance_mean": -0.004573629165726634,
+      "importance_std": 0.015041260320436591
+    },
+    {
+      "feature": "Traffic_Signal",
+      "importance_mean": -0.007411582858066828,
+      "importance_std": 0.022686295493058464
+    },
+    {
+      "feature": "Visibility(mi)",
+      "importance_mean": -0.00832030949992702,
+      "importance_std": 0.024877518202859487
+    }
+  ],
+  "shap_top_5": [
+    "Temperature(F)",
+    "Hour",
+    "Wind_Speed(mph)",
+    "DayOfWeek_Friday",
+    "Visibility(mi)"
+  ],
+  "permutation_top_5": [
+    "Wind_Speed(mph)",
+    "Temperature(F)",
+    "Hour",
+    "DayOfWeek_Saturday",
+    "DayOfWeek_Monday"
+  ],
+  "agreement_count": 3,
+  "agreement_features": [
+    "Hour",
+    "Temperature(F)",
+    "Wind_Speed(mph)"
+  ]
+}
