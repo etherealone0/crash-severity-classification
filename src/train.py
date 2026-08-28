@@ -149,7 +149,108 @@ def train_smotenc():
     return model, metrics
 
 
+def load_metrics_json(filename):
+    with open(os.path.join(RESULTS_DIR, filename)) as f:
+        return json.load(f)
+
+
+def plot_confusion_matrix(cm_matrix, labels, out_path):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    sns.heatmap(cm_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=ax)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
+    ax.set_title("Final Tuned SVC - Confusion Matrix (Test Set)")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def build_comparison_table(baseline, smote, tuned):
+    rows = [
+        ("Baseline (no balancing)", baseline),
+        ("SMOTENC-balanced", smote),
+        ("Tuned (Optuna)", tuned),
+    ]
+    lines = [
+        "| Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name, m in rows:
+        pc = m["per_class"]
+        lines.append(
+            f"| {name} | {m['accuracy']:.3f} | {m['macro_f1']:.3f} | "
+            f"{pc['Minor']['recall']:.3f} | {pc['Moderate']['recall']:.3f} | {pc['Severe']['recall']:.3f} |"
+        )
+    return "\n".join(lines)
+
+
+def final_evaluation():
+    """Task 9: load the tuned model, evaluate on the test set, and write one report
+    comparing all three variants (baseline -> SMOTENC -> tuned) side by side."""
+    import joblib
+
+    model_path = os.path.join(os.path.dirname(__file__), "..", "models", "final_svc.joblib")
+    model = joblib.load(model_path)
+
+    _, test = load_train_test()
+    X_test, y_test = split_xy(test)
+    metrics = evaluate(model, X_test, y_test)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    cm_path = os.path.join(RESULTS_DIR, "confusion_matrix.png")
+    plot_confusion_matrix(metrics["confusion_matrix"]["matrix"], LABELS, cm_path)
+    print(f"Wrote {cm_path}")
+
+    baseline = load_metrics_json("baseline_metrics.json")
+    smote = load_metrics_json("smote_metrics.json")
+    tuned = load_metrics_json("tuned_metrics.json")
+    comparison_table = build_comparison_table(baseline, smote, tuned)
+
+    per_class_lines = ["| Class | Precision | Recall | F1 | Support |", "|---|---|---|---|---|"]
+    for label in LABELS:
+        pc = metrics["per_class"][label]
+        per_class_lines.append(
+            f"| {label} | {pc['precision']:.3f} | {pc['recall']:.3f} | {pc['f1-score']:.3f} | {int(pc['support'])} |"
+        )
+
+    report = f"""# Final Model Evaluation
+
+Final tuned SVC (`models/final_svc.joblib`), evaluated on the held-out test set
+({len(test)} rows).
+
+## Model comparison (test set, all three trained/evaluated the same way)
+
+{comparison_table}
+
+Severe-class recall goes from 0% (baseline) to 56.2% (SMOTENC) to 5.6% (tuned):
+Optuna optimizes mean macro-F1 across CV folds, which favors getting Minor and
+Moderate right and trades away most of SMOTENC's Severe-recall gain to do it.
+
+## Final (tuned) model -- per-class metrics
+
+{chr(10).join(per_class_lines)}
+
+## Confusion matrix
+
+![Confusion Matrix](confusion_matrix.png)
+"""
+
+    report_path = os.path.join(RESULTS_DIR, "final_report.md")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(report)
+    print(f"Wrote {report_path}")
+
+    return metrics
+
+
 if __name__ == "__main__":
     train_baseline()
     print("\n" + "=" * 60 + "\n")
     train_smotenc()
+    print("\n" + "=" * 60 + "\n")
+    final_evaluation()
