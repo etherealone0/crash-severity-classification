@@ -1,0 +1,58 @@
+{
+  "accuracy": 0.7010896919669821,
+  "macro_f1": 0.350203317193122,
+  "per_class": {
+    "Minor": {
+      "precision": 0.8117040999300975,
+      "recall": 0.8354056209824989,
+      "f1-score": 0.8233843308027284,
+      "support": 63939.0
+    },
+    "Moderate": {
+      "precision": 0.2017535763728657,
+      "recall": 0.1626125120880756,
+      "f1-score": 0.18008073152648488,
+      "support": 13443.0
+    },
+    "Severe": {
+      "precision": 0.04097492052278347,
+      "recall": 0.05550239234449761,
+      "f1-score": 0.04714488925015241,
+      "support": 2090.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Minor",
+      "Moderate",
+      "Severe"
+    ],
+    "matrix": [
+      [
+        53415,
+        8359,
+        2165
+      ],
+      [
+        10707,
+        2186,
+        550
+      ],
+      [
+        1684,
+        290,
+        116
+      ]
+    ]
+  },
+  "n_trials": 20,
+  "cv_folds": 3,
+  "best_params": {
+    "C": 1.9151000143366523,
+    "gamma": 0.4920709465227078
+  },
+  "best_cv_macro_f1": 0.8533009737796485,
+  "train_rows_resampled": 19308,
+  "test_rows": 79472,
+  "note": "Optuna searched SVC's C and gamma over 20 trials, objective = mean macro-F1 across 3-fold CV on the SMOTENC-resampled training data from Task 7. Retrained with the best params on the full resampled set and evaluated on the same test set as the baseline and SMOTENC variants. Note the CV macro-F1 above is optimistic: it's computed on folds carved out of already-resampled data, where synthetic minority points are correlated with real neighbors that can land in a different fold. The test-set macro_f1 is the trustworthy number, and it's still a real improvement over Task 7's 0.176."
+}
