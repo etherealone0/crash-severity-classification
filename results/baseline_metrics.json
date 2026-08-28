@@ -45,8 +45,8 @@
       ]
     ]
   },
-  "train_rows": 30001,
+  "train_rows": 7999,
   "train_rows_full_split": 317886,
   "test_rows": 79472,
-  "note": "Trained on a 30001-row stratified subsample of the 317886-row training split; SVC(kernel='rbf') does not scale to the full split in practical time."
+  "note": "Trained on a 7999-row stratified subsample of the 317886-row training split; SVC(kernel='rbf') does not scale to the full split in practical time."
 }
