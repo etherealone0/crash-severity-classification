@@ -51,6 +51,16 @@ classes since they represent meaningfully different outcomes (significant delay
 vs. major/most disruptive). The resulting classes are still heavily imbalanced
 (roughly 80% / 17% / 3%), which is the imbalance Tasks 6-7 address.
 
+## Feature set
+
+30 features (see the comment block above `select_and_clean_features` in
+`src/data_prep.py` for the full kept/dropped rationale): 5 weather/distance
+numerics (including `Distance(mi)`, the length of road segment affected by
+the crash), 13 boolean road-feature/POI flags, 2 lighting flags
+(`Sunrise_Sunset_Night`, `Civil_Twilight_Night`), `Hour`, 7 one-hot
+`DayOfWeek_*` columns, and 2 frequency-encoded columns (`State`,
+`Weather_Condition`).
+
 ## Results
 
 Final tuned SVC, evaluated on the held-out test set (79,472 rows), on a
@@ -60,25 +70,24 @@ minus 2,642 near-duplicate crash records):
 | Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |
 |---|---|---|---|---|---|
 | Baseline (no balancing) | 0.805 | 0.297 | 1.000 | 0.000 | 0.000 |
-| SMOTENC-balanced | 0.187 | 0.176 | 0.111 | 0.488 | 0.562 |
-| Tuned (Optuna) | 0.612 | 0.370 | 0.662 | 0.457 | 0.065 |
+| SMOTENC-balanced | 0.301 | 0.251 | 0.217 | 0.674 | 0.459 |
+| Tuned (Optuna) | 0.679 | 0.394 | 0.751 | 0.431 | 0.042 |
 
-- SMOTENC alone takes Severe-class recall from 0% to 56.2%, at the cost of
+- SMOTENC alone takes Severe-class recall from 0% to 45.9%, at the cost of
   overall macro-F1 (an untuned SVC overcorrects toward the minority classes).
 - Optuna tuning (8 trials, 3-fold CV, objective evaluated honestly -- see
-  "CV leakage fix" below) recovers macro-F1 to 0.370, better than either
+  "CV leakage fix" below) recovers macro-F1 to 0.394, better than either
   untuned variant, but trades away most of SMOTENC's Severe-recall gain to get
-  there (0.065 vs. 0.562) -- a real precision/recall tension worth knowing
+  there (0.042 vs. 0.459) -- a real precision/recall tension worth knowing
   about rather than hiding.
 - Top 5 SHAP features: **DayOfWeek_Friday**, **DayOfWeek_Thursday**,
-  **DayOfWeek_Wednesday**, **DayOfWeek_Saturday**, **DayOfWeek_Tuesday** -- this
+  **Distance(mi)**, **DayOfWeek_Wednesday**, **DayOfWeek_Saturday** -- this
   particular tuned model (a low `gamma=0.00115`, very smooth decision boundary)
-  leans heavily on day-of-week. Cross-checked with permutation importance: only
-  1 of 5 features agree (`DayOfWeek_Saturday`), and permutation's importance
-  scores are an order of magnitude smaller than in earlier, higher-gamma
-  variants -- a real sign that this model's decisions are less sharply
-  attributable to individual features than the SHAP ranking alone suggests, not
-  a contradiction to paper over.
+  leans heavily on day-of-week, but `Distance(mi)` (added along with the
+  lighting flags and a check that all POI flags were already present) lands
+  a strong #3, and is the single #1 feature by permutation importance.
+  Cross-checked with permutation importance: 3 of 5 features agree
+  (`DayOfWeek_Saturday`, `DayOfWeek_Wednesday`, `Distance(mi)`).
 
 ## CV leakage fix (and why the numbers moved)
 
@@ -94,7 +103,7 @@ The fix: `src/tune.py` now wraps SMOTENC and the SVC in an
 imbalanced* training subsample. That pipeline gets cloned and refit inside
 `cross_val_score` for every fold, so SMOTENC only ever sees that fold's
 training rows -- validation folds stay real and untouched. After the fix,
-Optuna's best CV score (0.366) lands close to the true test score (0.370),
+Optuna's best CV score (0.388) lands close to the true test score (0.394),
 which is the actual signal a leak-free search should produce.
 
 Two costs came with the fix, both handled and documented in `src/tune.py`:

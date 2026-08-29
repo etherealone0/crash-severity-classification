@@ -108,9 +108,14 @@ def train_baseline():
 
 def categorical_feature_indices(X):
     """Column positions of the categorical features, for SMOTENC's categorical_features arg.
-    Booleans (Amenity, Junction, ...) and the one-hot DayOfWeek_* columns are categorical;
-    the weather numerics, Hour, and the two frequency-encoded columns are continuous."""
-    categorical_cols = list(BOOLEAN_FEATURES) + [c for c in X.columns if c.startswith("DayOfWeek_")]
+    Booleans (Amenity, Junction, ...), the Sunrise_Sunset_Night/Civil_Twilight_Night
+    lighting flags, and the one-hot DayOfWeek_* columns are categorical; the weather
+    numerics, Distance(mi), Hour, and the two frequency-encoded columns are continuous."""
+    categorical_cols = (
+        list(BOOLEAN_FEATURES)
+        + [c for c in X.columns if c.endswith("_Night")]
+        + [c for c in X.columns if c.startswith("DayOfWeek_")]
+    )
     return [X.columns.get_loc(c) for c in categorical_cols]
 
 

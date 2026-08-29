@@ -105,14 +105,24 @@ def add_severity_class(df):
     return df
 
 
-# --- Feature selection and cleaning (Task 4) ---
+# --- Feature selection and cleaning (Task 4, extended in Task 16) ---
 #
 # Kept columns and why:
 #   - Temperature(F), Visibility(mi), Wind_Speed(mph), Precipitation(in): core weather
 #     conditions at crash time. Numeric; missing values imputed with the median
 #     (Precipitation(in) is 28.5% missing, Wind_Speed(mph) 7.4%, the other two <3%).
-#   - 13 boolean road-feature flags (Junction, Traffic_Signal, Crossing, etc.): 0%
-#     missing, cast straight to int.
+#   - Distance(mi): length of road segment affected by the crash. 0% missing; one of
+#     the more strongly predictive fields in this dataset since bigger disruptions
+#     correlate with worse crashes, added in Task 16.
+#   - 13 boolean road-feature/POI flags (Amenity, Bump, Crossing, Give_Way, Junction,
+#     No_Exit, Railway, Roundabout, Station, Stop, Traffic_Calming, Traffic_Signal,
+#     Turning_Loop): 0% missing, cast straight to int. All 13 were already present
+#     since Task 4 -- Task 16 asked to add "the remaining POI flags," but none were
+#     actually missing.
+#   - Sunrise_Sunset, Civil_Twilight: lighting conditions, added in Task 16. Both are
+#     binary (Day/Night), 0.3% missing (filled with mode), mapped to a single
+#     Is_Night flag each rather than one-hot (one-hot on a 2-category field just
+#     produces two perfectly anti-correlated columns).
 #   - Hour (0-23): extracted from Start_Time, numeric, no imputation needed.
 #   - DayOfWeek: extracted from Start_Time, 7 categories -> one-hot (low cardinality).
 #   - State: 49 categories -> frequency-encoded (too high-cardinality for one-hot).
@@ -122,12 +132,14 @@ def add_severity_class(df):
 # Dropped:
 #   - Wind_Chill(F): 25.9% missing and redundant with Temperature(F).
 #   - everything not listed above is out of scope for this feature set.
-NUMERIC_FEATURES = ["Temperature(F)", "Visibility(mi)", "Wind_Speed(mph)", "Precipitation(in)"]
+NUMERIC_FEATURES = ["Temperature(F)", "Visibility(mi)", "Wind_Speed(mph)", "Precipitation(in)", "Distance(mi)"]
 
 BOOLEAN_FEATURES = [
     "Amenity", "Bump", "Crossing", "Give_Way", "Junction", "No_Exit", "Railway",
     "Roundabout", "Station", "Stop", "Traffic_Calming", "Traffic_Signal", "Turning_Loop",
 ]
+
+LIGHTING_FEATURES = ["Sunrise_Sunset", "Civil_Twilight"]
 
 ONEHOT_FEATURES = ["DayOfWeek"]
 FREQUENCY_FEATURES = ["State", "Weather_Condition"]
@@ -155,6 +167,11 @@ def select_and_clean_features(df):
     boolean_cols = df[BOOLEAN_FEATURES].astype(int)
     onehot_cols = pd.get_dummies(df[ONEHOT_FEATURES], prefix=ONEHOT_FEATURES).astype(int)
 
+    lighting_cols = pd.DataFrame(index=df.index)
+    for col in LIGHTING_FEATURES:
+        filled = df[col].fillna(df[col].mode().iloc[0])
+        lighting_cols[f"{col}_Night"] = (filled == "Night").astype(int)
+
     freq_cols = pd.DataFrame(index=df.index)
     for col in FREQUENCY_FEATURES:
         freq_cols[f"{col}_freq"] = df[col].map(df[col].value_counts(normalize=True))
@@ -163,6 +180,7 @@ def select_and_clean_features(df):
         [
             df[NUMERIC_FEATURES + ["Hour"]],
             boolean_cols,
+            lighting_cols,
             onehot_cols,
             freq_cols,
             df[["severity_class"]],

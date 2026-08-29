@@ -1,27 +1,27 @@
 [
   {
     "feature": "DayOfWeek_Friday",
-    "mean_abs_shap": 0.2835766120995627,
+    "mean_abs_shap": 0.22715664330918656,
     "plain_english": "crash occurred on a Friday"
   },
   {
     "feature": "DayOfWeek_Thursday",
-    "mean_abs_shap": 0.225971068799136,
+    "mean_abs_shap": 0.18100585531216867,
     "plain_english": "crash occurred on a Thursday"
   },
   {
+    "feature": "Distance(mi)",
+    "mean_abs_shap": 0.18055779529441293,
+    "plain_english": "length of road segment affected by the crash"
+  },
+  {
     "feature": "DayOfWeek_Wednesday",
-    "mean_abs_shap": 0.2114746272549213,
+    "mean_abs_shap": 0.17038070294575736,
     "plain_english": "crash occurred on a Wednesday"
   },
   {
     "feature": "DayOfWeek_Saturday",
-    "mean_abs_shap": 0.18733447130589762,
+    "mean_abs_shap": 0.15993780460761772,
     "plain_english": "crash occurred on a Saturday"
-  },
-  {
-    "feature": "DayOfWeek_Tuesday",
-    "mean_abs_shap": 0.1564527504322796,
-    "plain_english": "crash occurred on a Tuesday"
   }
 ]
