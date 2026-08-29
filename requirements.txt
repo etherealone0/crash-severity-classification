@@ -9,3 +9,4 @@ seaborn==0.13.2
 streamlit==1.62.0
 joblib==1.5.3
 kagglehub==1.0.2
+lightgbm==4.7.0

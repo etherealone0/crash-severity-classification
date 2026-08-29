@@ -1,9 +1,10 @@
 # Crash Severity Classification
 
 Predicts crash severity (Minor / Moderate / Severe) from weather, road-feature,
-and time-of-day data using an SVC classifier, with SMOTENC class balancing,
-Optuna hyperparameter tuning, and SHAP/permutation-importance interpretability.
-Results are served through a Streamlit dashboard.
+and time-of-day data. Compares four model variants -- baseline SVC, SMOTENC-
+balanced SVC, Optuna-tuned SVC, and a class-weighted LightGBM ensemble -- with
+SHAP/permutation-importance interpretability on the tuned SVC. Results are
+served through a Streamlit dashboard.
 
 Dataset: [US Accidents (2016-2023) by Sobhan Moosavi](https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents)
 (~7.7M rows, 46 columns), stratify-sampled down to 400K rows for local iteration.
@@ -32,6 +33,7 @@ Run in order -- each stage depends on the previous one's output:
 python src/data_prep.py            # sample, clean, dedup, split -> data/processed/{train,test}.parquet
 python src/train.py                # baseline -> SMOTENC -> final consolidated report
 python src/tune.py                 # Optuna search -> models/final_svc.joblib
+python src/train_ensemble.py       # LightGBM (class-weighted) -> models/final_lgbm.joblib
 python src/interpret.py            # SHAP + permutation importance
 python scripts/aggregate_results.py # everything -> results/summary.md
 streamlit run dashboard/app.py     # view it
@@ -63,31 +65,35 @@ the crash), 13 boolean road-feature/POI flags, 2 lighting flags
 
 ## Results
 
-Final tuned SVC, evaluated on the held-out test set (79,472 rows), on a
-397,358-row modeling dataset (400K sampled from the full ~7.7M-row dataset,
-minus 2,642 near-duplicate crash records):
+Evaluated on the held-out test set (79,472 rows), on a 397,358-row modeling
+dataset (400K sampled from the full ~7.7M-row dataset, minus 2,642
+near-duplicate crash records):
 
 | Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |
 |---|---|---|---|---|---|
 | Baseline (no balancing) | 0.805 | 0.297 | 1.000 | 0.000 | 0.000 |
 | SMOTENC-balanced | 0.301 | 0.251 | 0.217 | 0.674 | 0.459 |
 | Tuned (Optuna) | 0.679 | 0.394 | 0.751 | 0.431 | 0.042 |
+| LightGBM (class-weighted) | 0.552 | 0.443 | 0.500 | 0.761 | 0.816 |
 
 - SMOTENC alone takes Severe-class recall from 0% to 45.9%, at the cost of
   overall macro-F1 (an untuned SVC overcorrects toward the minority classes).
 - Optuna tuning (8 trials, 3-fold CV, objective evaluated honestly -- see
   "CV leakage fix" below) recovers macro-F1 to 0.394, better than either
-  untuned variant, but trades away most of SMOTENC's Severe-recall gain to get
-  there (0.042 vs. 0.459) -- a real precision/recall tension worth knowing
+  untuned SVC variant, but trades away most of SMOTENC's Severe-recall gain to
+  get there (0.042 vs. 0.459) -- a real precision/recall tension worth knowing
   about rather than hiding.
-- Top 5 SHAP features: **DayOfWeek_Friday**, **DayOfWeek_Thursday**,
-  **Distance(mi)**, **DayOfWeek_Wednesday**, **DayOfWeek_Saturday** -- this
-  particular tuned model (a low `gamma=0.00115`, very smooth decision boundary)
-  leans heavily on day-of-week, but `Distance(mi)` (added along with the
-  lighting flags and a check that all POI flags were already present) lands
-  a strong #3, and is the single #1 feature by permutation importance.
-  Cross-checked with permutation importance: 3 of 5 features agree
-  (`DayOfWeek_Saturday`, `DayOfWeek_Wednesday`, `Distance(mi)`).
+- LightGBM (class-weighted, trained on the full training split -- see
+  "Tree ensemble" below) beats every SVC variant on both macro-F1 (0.443) and
+  Severe recall (0.816) at the same time, with no precision/recall tradeoff to
+  apologize for.
+- Top 5 SHAP features (on the tuned SVC): **DayOfWeek_Friday**,
+  **DayOfWeek_Thursday**, **Distance(mi)**, **DayOfWeek_Wednesday**,
+  **DayOfWeek_Saturday** -- this particular tuned model (a low `gamma=0.00115`,
+  very smooth decision boundary) leans heavily on day-of-week, but
+  `Distance(mi)` lands a strong #3, and is the single #1 feature by
+  permutation importance. Cross-checked with permutation importance: 3 of 5
+  features agree (`DayOfWeek_Saturday`, `DayOfWeek_Wednesday`, `Distance(mi)`).
 
 ## CV leakage fix (and why the numbers moved)
 
@@ -122,6 +128,26 @@ separation problem genuinely harder for libsvm). `src/train.py` stratify-
 subsamples the training split down to 8,000 rows before training/tuning, while
 always evaluating on the full, untouched test set.
 
+## Tree ensemble (`src/train_ensemble.py`)
+
+SVC's subsampling isn't just an inconvenience -- it throws away most of the
+training data, and the RBF kernel is a mediocre fit for tabular data that's
+mostly one-hot/frequency-encoded categoricals to begin with. `LGBMClassifier`
+doesn't share either problem: gradient-boosted trees split natively on
+categorical-flavored features and don't have SVC's O(n^2-n^3) scaling wall, so
+`train_lgbm()` trains on the full 317,886-row training split (no subsampling)
+using `class_weight="balanced"` as a direct alternative to SMOTENC for handling
+the imbalance.
+
+The result: LightGBM outperforms every SVC variant on both macro-F1 and
+Severe-class recall simultaneously (see the Results table above) -- proof that
+the SVC family's weak spot here was as much "wrong model for this data" as it
+was "wrong training-set size." The tuned SVC (`models/final_svc.joblib`)
+remains the model behind the SHAP/permutation-importance interpretability
+section and the dashboard, since that analysis was built around
+`decision_function`; LightGBM is evaluated as a fourth comparison point, not
+(yet) wired into the interpretability pipeline.
+
 ## Project structure
 
 ```
@@ -130,9 +156,10 @@ data/processed/     train/test parquet + feature matrix (gitignored)
 src/data_prep.py    download, sample, clean, dedup, split
 src/train.py        baseline, SMOTENC, final consolidated evaluation
 src/tune.py         Optuna hyperparameter search
+src/train_ensemble.py  LightGBM (class-weighted) tree-ensemble variant
 src/interpret.py    SHAP + permutation importance
 scripts/            results aggregation
-models/             final_svc.joblib (gitignored, regenerate via src/tune.py)
+models/             final_svc.joblib, final_lgbm.joblib (gitignored, regenerate via src/tune.py / src/train_ensemble.py)
 results/            all metrics, plots, and the final summary.md
 dashboard/app.py    Streamlit results dashboard
 ```

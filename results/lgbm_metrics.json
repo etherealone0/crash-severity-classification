@@ -1,0 +1,51 @@
+{
+  "accuracy": 0.5523454801691162,
+  "macro_f1": 0.44288840866081847,
+  "per_class": {
+    "Minor": {
+      "precision": 0.9498068350668648,
+      "recall": 0.4998670607923177,
+      "f1-score": 0.6550123477031223,
+      "support": 63939.0
+    },
+    "Moderate": {
+      "precision": 0.3915706465566742,
+      "recall": 0.7609164620992338,
+      "f1-score": 0.5170601021078703,
+      "support": 13443.0
+    },
+    "Severe": {
+      "precision": 0.08660338088227829,
+      "recall": 0.816267942583732,
+      "f1-score": 0.15659277617146267,
+      "support": 2090.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Minor",
+      "Moderate",
+      "Severe"
+    ],
+    "matrix": [
+      [
+        31961,
+        15791,
+        16187
+      ],
+      [
+        1408,
+        10229,
+        1806
+      ],
+      [
+        281,
+        103,
+        1706
+      ]
+    ]
+  },
+  "train_rows": 317886,
+  "test_rows": 79472,
+  "note": "LGBMClassifier(class_weight='balanced'), trained on the full 317886-row training split (vs. the 8,000-row subsample SVC needs) since gradient-boosted trees don't share SVC's scaling limit."
+}

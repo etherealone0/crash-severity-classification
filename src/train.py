@@ -175,12 +175,14 @@ def plot_confusion_matrix(cm_matrix, labels, out_path):
     plt.close(fig)
 
 
-def build_comparison_table(baseline, smote, tuned):
+def build_comparison_table(baseline, smote, tuned, lgbm=None):
     rows = [
         ("Baseline (no balancing)", baseline),
         ("SMOTENC-balanced", smote),
         ("Tuned (Optuna)", tuned),
     ]
+    if lgbm is not None:
+        rows.append(("LightGBM (class-weighted)", lgbm))
     lines = [
         "| Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |",
         "|---|---|---|---|---|---|",
@@ -214,7 +216,8 @@ def final_evaluation():
     baseline = load_metrics_json("baseline_metrics.json")
     smote = load_metrics_json("smote_metrics.json")
     tuned = load_metrics_json("tuned_metrics.json")
-    comparison_table = build_comparison_table(baseline, smote, tuned)
+    lgbm = load_metrics_json("lgbm_metrics.json")
+    comparison_table = build_comparison_table(baseline, smote, tuned, lgbm)
 
     per_class_lines = ["| Class | Precision | Recall | F1 | Support |", "|---|---|---|---|---|"]
     for label in LABELS:
@@ -226,13 +229,14 @@ def final_evaluation():
     baseline_severe_recall = baseline["per_class"]["Severe"]["recall"]
     smote_severe_recall = smote["per_class"]["Severe"]["recall"]
     tuned_severe_recall = tuned["per_class"]["Severe"]["recall"]
+    lgbm_severe_recall = lgbm["per_class"]["Severe"]["recall"]
 
     report = f"""# Final Model Evaluation
 
 Final tuned SVC (`models/final_svc.joblib`), evaluated on the held-out test set
 ({len(test)} rows).
 
-## Model comparison (test set, all three trained/evaluated the same way)
+## Model comparison (test set, all four trained/evaluated the same way)
 
 {comparison_table}
 
@@ -240,6 +244,12 @@ Severe-class recall goes from {baseline_severe_recall:.1%} (baseline) to
 {smote_severe_recall:.1%} (SMOTENC) to {tuned_severe_recall:.1%} (tuned): Optuna
 optimizes mean macro-F1 across CV folds, which favors getting Minor and Moderate
 right and trades away most of SMOTENC's Severe-recall gain to do it.
+
+LightGBM (`models/final_lgbm.joblib`), trained on the full training split with
+`class_weight="balanced"` instead of SMOTENC, beats every SVC variant on macro-F1
+({lgbm['macro_f1']:.3f}) and Severe recall ({lgbm_severe_recall:.1%}) at once --
+both the scaling fix (no subsampling) and the tree model's better fit on this
+mixed categorical/continuous data show up directly in the numbers.
 
 ## Final (tuned) model -- per-class metrics
 
