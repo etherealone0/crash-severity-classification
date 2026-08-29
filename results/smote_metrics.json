@@ -1,24 +1,24 @@
 {
-  "accuracy": 0.30098651097241796,
-  "macro_f1": 0.25077026158460686,
+  "accuracy": 0.37378165008759,
+  "macro_f1": 0.29118194887397153,
   "per_class": {
     "Minor": {
-      "precision": 0.8717627139900922,
-      "recall": 0.2174259841411345,
-      "f1-score": 0.3480459655008387,
-      "support": 63939.0
+      "precision": 0.8689962437201152,
+      "recall": 0.2991138745051236,
+      "f1-score": 0.4450416606003614,
+      "support": 311694.0
     },
     "Moderate": {
-      "precision": 0.20607908267734448,
-      "recall": 0.6738079297775794,
-      "f1-score": 0.3156262522431486,
-      "support": 13443.0
+      "precision": 0.21062470522660034,
+      "recall": 0.73231961836613,
+      "f1-score": 0.3271552728846858,
+      "support": 67080.0
     },
     "Severe": {
-      "precision": 0.0490521690255991,
-      "recall": 0.45933014354066987,
-      "f1-score": 0.08863856700983334,
-      "support": 2090.0
+      "precision": 0.06114958735951562,
+      "recall": 0.2958170328016852,
+      "f1-score": 0.10134891313686743,
+      "support": 9969.0
     }
   },
   "confusion_matrix": {
@@ -29,24 +29,24 @@
     ],
     "matrix": [
       [
-        13902,
-        34129,
-        15908
+        93232,
+        179654,
+        38808
       ],
       [
-        1682,
-        9058,
-        2703
+        11487,
+        49124,
+        6469
       ],
       [
-        363,
-        767,
-        960
+        2568,
+        4452,
+        2949
       ]
     ]
   },
   "train_rows_before_smote": 7999,
-  "train_rows_after_smote": 19308,
-  "test_rows": 79472,
-  "note": "SMOTENC-balanced the 7999-row SVC training subsample up to 19308 rows (equal class counts), then trained the same default-hyperparameter SVC(kernel='rbf') and evaluated on the same test set as the baseline."
+  "train_rows_after_smote": 19242,
+  "test_rows": 388743,
+  "note": "SMOTENC-balanced the 7999-row SVC training subsample up to 19242 rows (equal class counts), then trained the same default-hyperparameter SVC(kernel='rbf') and evaluated on the same test set as the baseline."
 }

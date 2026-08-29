@@ -9,7 +9,7 @@ RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
 PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 SAMPLE_PATH = os.path.join(RAW_DIR, "us_accidents_sample.csv")
 KAGGLE_DATASET = "sobhanmoosavi/us-accidents"
-SAMPLE_SIZE = 400_000
+SAMPLE_SIZE = 2_000_000
 RANDOM_STATE = 42
 
 

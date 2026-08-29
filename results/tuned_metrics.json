@@ -1,24 +1,24 @@
 {
-  "accuracy": 0.6785408697402859,
-  "macro_f1": 0.39376824543174777,
+  "accuracy": 0.6569070053994541,
+  "macro_f1": 0.38684433073058067,
   "per_class": {
     "Minor": {
-      "precision": 0.840888406608793,
-      "recall": 0.7514193215408436,
-      "f1-score": 0.7936403055957051,
-      "support": 63939.0
+      "precision": 0.8459979311160903,
+      "recall": 0.7110563565548262,
+      "f1-score": 0.7726798112506994,
+      "support": 311694.0
     },
     "Moderate": {
-      "precision": 0.2758883490521101,
-      "recall": 0.4308562076917355,
-      "f1-score": 0.336382379417487,
-      "support": 13443.0
+      "precision": 0.27547713063507734,
+      "recall": 0.4992098986285033,
+      "f1-score": 0.35503604749787954,
+      "support": 67080.0
     },
     "Severe": {
-      "precision": 0.06557377049180328,
-      "recall": 0.042105263157894736,
-      "f1-score": 0.05128205128205128,
-      "support": 2090.0
+      "precision": 0.04782942758355743,
+      "recall": 0.02497743003310262,
+      "f1-score": 0.032817133443163095,
+      "support": 9969.0
     }
   },
   "confusion_matrix": {
@@ -29,19 +29,19 @@
     ],
     "matrix": [
       [
-        48045,
-        14822,
-        1072
+        221632,
+        85863,
+        4199
       ],
       [
-        7469,
-        5792,
-        182
+        32835,
+        33487,
+        758
       ],
       [
-        1622,
-        380,
-        88
+        7510,
+        2210,
+        249
       ]
     ]
   },
@@ -51,9 +51,9 @@
     "C": 21.368329072358772,
     "gamma": 0.0011526449540315614
   },
-  "best_cv_macro_f1": 0.38803092668464895,
-  "train_rows_resampled": 19308,
-  "test_rows": 79472,
+  "best_cv_macro_f1": 0.3824440341352348,
+  "train_rows_resampled": 19242,
+  "test_rows": 388743,
   "svc_max_iter": 20000,
   "note": "Optuna searched SVC's C and gamma over 8 trials, objective = mean macro-F1 across 3-fold CV using an imblearn Pipeline (SMOTENC + SVC) so SMOTENC is refit inside each fold on that fold's training data only, keeping validation folds real and imbalanced. This fixes the CV-score leakage from the original Task 8 approach (SMOTENC applied once before splitting into folds, which inflated CV macro-F1 to ~0.85 against a true test score of 0.350). SVC's max_iter is capped at 20000 since some hyperparameter corners converge extremely slowly (one uncapped fit ran 2+ hours); a capped fit that hasn't fully converged just gets scored on wherever it landed. Retrained with the best params on the full SMOTENC-resampled training data and evaluated on the same test set as the baseline and SMOTENC variants."
 }

@@ -1,24 +1,24 @@
 {
-  "accuracy": 0.5523454801691162,
-  "macro_f1": 0.44288840866081847,
+  "accuracy": 0.5497796744893155,
+  "macro_f1": 0.44208134356951206,
   "per_class": {
     "Minor": {
-      "precision": 0.9498068350668648,
-      "recall": 0.4998670607923177,
-      "f1-score": 0.6550123477031223,
-      "support": 63939.0
+      "precision": 0.9497152126228088,
+      "recall": 0.4958998248281969,
+      "f1-score": 0.651575413059836,
+      "support": 311694.0
     },
     "Moderate": {
-      "precision": 0.3915706465566742,
-      "recall": 0.7609164620992338,
-      "f1-score": 0.5170601021078703,
-      "support": 13443.0
+      "precision": 0.3985025934705565,
+      "recall": 0.7593470483005367,
+      "f1-score": 0.5226961380393123,
+      "support": 67080.0
     },
     "Severe": {
-      "precision": 0.08660338088227829,
-      "recall": 0.816267942583732,
-      "f1-score": 0.15659277617146267,
-      "support": 2090.0
+      "precision": 0.08370259450539376,
+      "recall": 0.8242551910923864,
+      "f1-score": 0.151972479609388,
+      "support": 9969.0
     }
   },
   "confusion_matrix": {
@@ -29,23 +29,23 @@
     ],
     "matrix": [
       [
-        31961,
-        15791,
-        16187
+        154569,
+        76439,
+        80686
       ],
       [
-        1408,
-        10229,
-        1806
+        6877,
+        50937,
+        9266
       ],
       [
-        281,
-        103,
-        1706
+        1307,
+        445,
+        8217
       ]
     ]
   },
-  "train_rows": 317886,
-  "test_rows": 79472,
-  "note": "LGBMClassifier(class_weight='balanced'), trained on the full 317886-row training split (vs. the 8,000-row subsample SVC needs) since gradient-boosted trees don't share SVC's scaling limit."
+  "train_rows": 1554968,
+  "test_rows": 388743,
+  "note": "LGBMClassifier(class_weight='balanced'), trained on the full 1554968-row training split (vs. the 8,000-row subsample SVC needs) since gradient-boosted trees don't share SVC's scaling limit."
 }
