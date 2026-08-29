@@ -1,0 +1,62 @@
+{
+  "accuracy": 0.786100328494661,
+  "macro_f1": 0.5629842530258483,
+  "per_class": {
+    "Minor": {
+      "precision": 0.9028608226899281,
+      "recall": 0.8366410646339038,
+      "f1-score": 0.8684905091694461,
+      "support": 311694.0
+    },
+    "Moderate": {
+      "precision": 0.5063383504211139,
+      "recall": 0.6103309481216458,
+      "f1-score": 0.5534923649932065,
+      "support": 67080.0
+    },
+    "Severe": {
+      "precision": 0.2033275599643101,
+      "recall": 0.38860467449092184,
+      "f1-score": 0.26696988491489215,
+      "support": 9969.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Minor",
+      "Moderate",
+      "Severe"
+    ],
+    "matrix": [
+      [
+        260776,
+        39407,
+        11511
+      ],
+      [
+        22471,
+        40941,
+        3668
+      ],
+      [
+        5586,
+        509,
+        3874
+      ]
+    ]
+  },
+  "train_rows": 1554968,
+  "test_rows": 388743,
+  "cv_search_rows": 200000,
+  "n_trials": 60,
+  "cv_folds": 3,
+  "cv_macro_f1": 0.5491935565357955,
+  "best_params": {
+    "n_estimators": 480,
+    "max_depth": 6,
+    "learning_rate": 0.06331597828901991,
+    "moderate_weight": 2.100421972333565,
+    "severe_weight": 7.469396416869201
+  },
+  "note": "LGBMClassifier tuned via Optuna (60 trials, 3-fold CV on a 200000-row stratified subsample for search speed), final model refit on the full 1554968-row training split. Class weighting (Moderate/Severe multipliers) tuned alongside the tree hyperparameters as the imbalance strategy, in place of SMOTENC."
+}

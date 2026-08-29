@@ -175,7 +175,7 @@ def plot_confusion_matrix(cm_matrix, labels, out_path):
     plt.close(fig)
 
 
-def build_comparison_table(baseline, smote, tuned, lgbm=None):
+def build_comparison_table(baseline, smote, tuned, lgbm=None, lgbm_tuned=None):
     rows = [
         ("Baseline (no balancing)", baseline),
         ("SMOTENC-balanced", smote),
@@ -183,6 +183,8 @@ def build_comparison_table(baseline, smote, tuned, lgbm=None):
     ]
     if lgbm is not None:
         rows.append(("LightGBM (class-weighted)", lgbm))
+    if lgbm_tuned is not None:
+        rows.append(("LightGBM (tuned)", lgbm_tuned))
     lines = [
         "| Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |",
         "|---|---|---|---|---|---|",
@@ -217,7 +219,8 @@ def final_evaluation():
     smote = load_metrics_json("smote_metrics.json")
     tuned = load_metrics_json("tuned_metrics.json")
     lgbm = load_metrics_json("lgbm_metrics.json")
-    comparison_table = build_comparison_table(baseline, smote, tuned, lgbm)
+    lgbm_tuned = load_metrics_json("lgbm_tuned_metrics.json")
+    comparison_table = build_comparison_table(baseline, smote, tuned, lgbm, lgbm_tuned)
 
     per_class_lines = ["| Class | Precision | Recall | F1 | Support |", "|---|---|---|---|---|"]
     for label in LABELS:
@@ -230,13 +233,16 @@ def final_evaluation():
     smote_severe_recall = smote["per_class"]["Severe"]["recall"]
     tuned_severe_recall = tuned["per_class"]["Severe"]["recall"]
     lgbm_severe_recall = lgbm["per_class"]["Severe"]["recall"]
+    lgbm_tuned_moderate_recall = lgbm_tuned["per_class"]["Moderate"]["recall"]
+    lgbm_moderate_recall = lgbm["per_class"]["Moderate"]["recall"]
 
     report = f"""# Final Model Evaluation
 
 Final tuned SVC (`models/final_svc.joblib`), evaluated on the held-out test set
-({len(test)} rows).
+({len(test)} rows). Best overall model is LightGBM (tuned) -- see the comparison
+table below.
 
-## Model comparison (test set, all four trained/evaluated the same way)
+## Model comparison (test set, all five trained/evaluated the same way)
 
 {comparison_table}
 
@@ -250,6 +256,17 @@ LightGBM (`models/final_lgbm.joblib`), trained on the full training split with
 ({lgbm['macro_f1']:.3f}) and Severe recall ({lgbm_severe_recall:.1%}) at once --
 both the scaling fix (no subsampling) and the tree model's better fit on this
 mixed categorical/continuous data show up directly in the numbers.
+
+LightGBM (tuned) (`models/final_lgbm_tuned.joblib`) pushes macro-F1 further to
+{lgbm_tuned['macro_f1']:.3f} by tuning `n_estimators`/`max_depth`/`learning_rate`
+alongside the per-class weighting, via a leak-free Optuna search (CV macro-F1
+{lgbm_tuned['cv_macro_f1']:.3f} vs. test {lgbm_tuned['macro_f1']:.3f} -- no
+inflation). The tradeoff: Moderate recall drops from {lgbm_moderate_recall:.1%}
+to {lgbm_tuned_moderate_recall:.1%} and Severe recall from {lgbm_severe_recall:.1%}
+to {lgbm_tuned['per_class']['Severe']['recall']:.1%} versus the untuned LightGBM,
+in exchange for much higher precision on both classes -- Optuna's search found
+milder class weights than the untuned model's blanket `class_weight="balanced"`,
+because macro-F1 rewards precision and recall equally, not recall alone.
 
 ## Final (tuned) model -- per-class metrics
 
