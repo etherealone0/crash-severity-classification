@@ -16,16 +16,17 @@ sys.path.insert(0, os.path.dirname(__file__))
 from train import RANDOM_STATE, load_train_test, split_xy  # noqa: E402
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "final_svc.joblib")
+# The model actually shipped: tuned LightGBM (Task 19), not the tuned SVC --
+# TreeExplainer only applies to tree ensembles anyway, and this is the
+# best-performing variant (test macro-F1 0.563 vs. the SVC's 0.387).
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "final_lgbm_tuned.joblib")
 
-# KernelExplainer is model-agnostic but expensive: cost scales with
-# explain_rows * background_rows * nsamples. At nsamples=50/background=20 a single
-# row took ~3.2s; 200 explained rows against a 50-row background at nsamples=100
-# (rather than shap's much larger 'auto' default) keeps this to tens of minutes
-# instead of hours, while staying within the task's suggested 200-500 / 50-100 ranges.
-SHAP_EXPLAIN_SIZE = 200
-SHAP_BACKGROUND_SIZE = 50
-SHAP_NSAMPLES = 100
+# TreeExplainer computes exact SHAP values directly from the tree structure --
+# no background sample or Monte-Carlo nsamples needed, and it's orders of
+# magnitude faster than KernelExplainer (which needed 200 rows x 50-row
+# background x 100 samples to stay under a couple hours). 20,000 rows gives a
+# far more stable ranking while still finishing in well under a minute.
+SHAP_EXPLAIN_SIZE = 20_000
 
 # Plain-English descriptions for the report -- fill in for whichever features end up
 # in the top 5, used by print_top_features().
@@ -66,15 +67,21 @@ def load_model_and_test():
 
 
 def compute_shap_values(model, X_test):
-    """Explain SHAP_EXPLAIN_SIZE test rows against a SHAP_BACKGROUND_SIZE background,
-    using decision_function (one score per class) since this SVC wasn't fit with
-    probability=True. Returns (shap_values, explain_sample) where shap_values has
+    """Explain SHAP_EXPLAIN_SIZE test rows with TreeExplainer -- exact SHAP values
+    computed directly from the tree structure, no background sample or Monte-Carlo
+    sampling needed. Returns (shap_values, explain_sample) where shap_values has
     shape (n_explain, n_features, n_classes)."""
-    background = shap.sample(X_test, SHAP_BACKGROUND_SIZE, random_state=RANDOM_STATE)
-    explainer = shap.KernelExplainer(model.decision_function, background)
+    explainer = shap.TreeExplainer(model)
 
     explain_sample = X_test.sample(n=SHAP_EXPLAIN_SIZE, random_state=RANDOM_STATE)
-    shap_values = explainer.shap_values(explain_sample, nsamples=SHAP_NSAMPLES)
+    raw = explainer.shap_values(explain_sample)
+    # Legacy shap_values() returns a list of per-class (n_samples, n_features) arrays
+    # for a native multiclass model; normalize to (n_samples, n_features, n_classes)
+    # to match the shape rank_features()/plot_shap_summary() expect.
+    if isinstance(raw, list):
+        shap_values = np.stack(raw, axis=-1)
+    else:
+        shap_values = raw
     return shap_values, explain_sample
 
 
@@ -94,17 +101,17 @@ def plot_shap_summary(shap_values, explain_sample, out_path):
     fig, ax = plt.subplots(figsize=(7, 8))
     ax.barh([explain_sample.columns[i] for i in order], combined[order], color="#4c72b0")
     ax.set_xlabel("Mean |SHAP value| (averaged across classes)")
-    ax.set_title("SHAP Feature Importance -- Final Tuned SVC")
+    ax.set_title("SHAP Feature Importance -- Tuned LightGBM")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
 
 
 def run_shap_analysis():
-    """Task 10: rank features by mean absolute SHAP value using KernelExplainer."""
+    """Rank features by mean absolute SHAP value using TreeExplainer on the tuned
+    LightGBM model -- exact values, no background/nsamples tradeoff."""
     model, X_test, _ = load_model_and_test()
-    print(f"Explaining {SHAP_EXPLAIN_SIZE} rows against a {SHAP_BACKGROUND_SIZE}-row "
-          f"background, nsamples={SHAP_NSAMPLES}")
+    print(f"Explaining {SHAP_EXPLAIN_SIZE} rows with TreeExplainer (exact SHAP values)")
 
     shap_values, explain_sample = compute_shap_values(model, X_test)
     print("shap_values shape:", shap_values.shape)
@@ -144,8 +151,8 @@ def get_shap_explain_sample(X_test, y_test):
 
 
 def run_permutation_importance():
-    """Task 11: cross-check SHAP's ranking with sklearn's permutation_importance on
-    the same test subset used for SHAP."""
+    """Cross-check SHAP's ranking with sklearn's permutation_importance on the same
+    test subset used for SHAP, on the same tuned LightGBM model."""
     from sklearn.inspection import permutation_importance
 
     model, X_test, y_test = load_model_and_test()

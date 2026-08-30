@@ -2,120 +2,155 @@
   "top_5": [
     {
       "feature": "Distance(mi)",
-      "importance_mean": 0.020995292603305044,
-      "importance_std": 0.01666583531906428
+      "importance_mean": 0.1545696162965884,
+      "importance_std": 0.0038647697781736836
+    },
+    {
+      "feature": "State_freq",
+      "importance_mean": 0.07478643241389504,
+      "importance_std": 0.0034467549932192675
     },
     {
       "feature": "Weather_Condition_freq",
-      "importance_mean": 0.015498607839320822,
-      "importance_std": 0.00936792229536361
+      "importance_mean": 0.02541392653184098,
+      "importance_std": 0.0035145050634491333
     },
     {
-      "feature": "DayOfWeek_Wednesday",
-      "importance_mean": 0.013582288068994886,
-      "importance_std": 0.011706518581060466
+      "feature": "Wind_Speed(mph)",
+      "importance_mean": 0.023366341243537658,
+      "importance_std": 0.0030872443135123453
     },
     {
-      "feature": "Hour",
-      "importance_mean": 0.013370310241204436,
-      "importance_std": 0.009472705165283523
-    },
-    {
-      "feature": "DayOfWeek_Saturday",
-      "importance_mean": 0.010677443552214411,
-      "importance_std": 0.005159834581494575
+      "feature": "Traffic_Signal",
+      "importance_mean": 0.02090303540357774,
+      "importance_std": 0.0020093451908895737
     }
   ],
   "full_ranking": [
     {
       "feature": "Distance(mi)",
-      "importance_mean": 0.020995292603305044,
-      "importance_std": 0.01666583531906428
-    },
-    {
-      "feature": "Weather_Condition_freq",
-      "importance_mean": 0.015498607839320822,
-      "importance_std": 0.00936792229536361
-    },
-    {
-      "feature": "DayOfWeek_Wednesday",
-      "importance_mean": 0.013582288068994886,
-      "importance_std": 0.011706518581060466
-    },
-    {
-      "feature": "Hour",
-      "importance_mean": 0.013370310241204436,
-      "importance_std": 0.009472705165283523
-    },
-    {
-      "feature": "DayOfWeek_Saturday",
-      "importance_mean": 0.010677443552214411,
-      "importance_std": 0.005159834581494575
-    },
-    {
-      "feature": "DayOfWeek_Monday",
-      "importance_mean": 0.005783384055423779,
-      "importance_std": 0.011669850580273138
+      "importance_mean": 0.1545696162965884,
+      "importance_std": 0.0038647697781736836
     },
     {
       "feature": "State_freq",
-      "importance_mean": 0.0054729786671800455,
-      "importance_std": 0.005390663063005086
+      "importance_mean": 0.07478643241389504,
+      "importance_std": 0.0034467549932192675
     },
     {
-      "feature": "Traffic_Signal",
-      "importance_mean": 0.004416891010893259,
-      "importance_std": 0.010533181361869275
-    },
-    {
-      "feature": "Sunrise_Sunset_Night",
-      "importance_mean": 0.0033473557459859694,
-      "importance_std": 0.012956068103061614
-    },
-    {
-      "feature": "Amenity",
-      "importance_mean": 0.00141506807149564,
-      "importance_std": 0.001570547706954017
-    },
-    {
-      "feature": "Civil_Twilight_Night",
-      "importance_mean": 0.001345122972372098,
-      "importance_std": 0.005676206981299328
+      "feature": "Weather_Condition_freq",
+      "importance_mean": 0.02541392653184098,
+      "importance_std": 0.0035145050634491333
     },
     {
       "feature": "Wind_Speed(mph)",
-      "importance_mean": 0.0003958808381426704,
-      "importance_std": 0.005809906827396129
+      "importance_mean": 0.023366341243537658,
+      "importance_std": 0.0030872443135123453
     },
     {
-      "feature": "Precipitation(in)",
-      "importance_mean": 0.00023613502621826487,
-      "importance_std": 0.0007084050786547948
+      "feature": "Traffic_Signal",
+      "importance_mean": 0.02090303540357774,
+      "importance_std": 0.0020093451908895737
     },
     {
-      "feature": "Traffic_Calming",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "feature": "Hour",
+      "importance_mean": 0.012944832109460836,
+      "importance_std": 0.0034902782378349742
     },
     {
-      "feature": "No_Exit",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "feature": "Crossing",
+      "importance_mean": 0.01042470459122955,
+      "importance_std": 0.0009183101857707022
     },
     {
-      "feature": "Bump",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "feature": "Stop",
+      "importance_mean": 0.00707425611937833,
+      "importance_std": 0.000806394599232917
+    },
+    {
+      "feature": "Junction",
+      "importance_mean": 0.00557789790977743,
+      "importance_std": 0.0007573033027336875
+    },
+    {
+      "feature": "Temperature(F)",
+      "importance_mean": 0.003444176862306836,
+      "importance_std": 0.0013612784367210517
+    },
+    {
+      "feature": "DayOfWeek_Sunday",
+      "importance_mean": 0.003294810724259312,
+      "importance_std": 0.0012124652494394652
+    },
+    {
+      "feature": "DayOfWeek_Saturday",
+      "importance_mean": 0.003225010476724399,
+      "importance_std": 0.0008444100629284271
+    },
+    {
+      "feature": "Civil_Twilight_Night",
+      "importance_mean": 0.002167222166718885,
+      "importance_std": 0.0005900371963075477
+    },
+    {
+      "feature": "Station",
+      "importance_mean": 0.001848228006079533,
+      "importance_std": 0.0006497183050775595
     },
     {
       "feature": "Give_Way",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "importance_mean": 0.0011607845449245313,
+      "importance_std": 0.00015164496649019705
+    },
+    {
+      "feature": "Amenity",
+      "importance_mean": 0.0011043980104741501,
+      "importance_std": 0.0006476280618101292
+    },
+    {
+      "feature": "Visibility(mi)",
+      "importance_mean": 0.0010129792313710473,
+      "importance_std": 0.000823043740610611
+    },
+    {
+      "feature": "Precipitation(in)",
+      "importance_mean": 0.0009795073775654916,
+      "importance_std": 0.000657316130388957
+    },
+    {
+      "feature": "Railway",
+      "importance_mean": 0.0007330193254946437,
+      "importance_std": 0.00024460092606361
+    },
+    {
+      "feature": "DayOfWeek_Thursday",
+      "importance_mean": 0.00033005909494236984,
+      "importance_std": 0.00023988835319640545
+    },
+    {
+      "feature": "DayOfWeek_Friday",
+      "importance_mean": 0.0001807883900360463,
+      "importance_std": 0.000466014110507306
+    },
+    {
+      "feature": "Sunrise_Sunset_Night",
+      "importance_mean": 6.097700065038625e-05,
+      "importance_std": 0.0013248143323893358
+    },
+    {
+      "feature": "No_Exit",
+      "importance_mean": 5.8404265178346734e-05,
+      "importance_std": 0.00014884019525225042
+    },
+    {
+      "feature": "Traffic_Calming",
+      "importance_mean": 4.924603011706719e-05,
+      "importance_std": 6.109604645390203e-05
     },
     {
       "feature": "Roundabout",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "importance_mean": 3.265902619522532e-05,
+      "importance_std": 1.0886342065075106e-05
     },
     {
       "feature": "Turning_Loop",
@@ -123,79 +158,45 @@
       "importance_std": 0.0
     },
     {
-      "feature": "Railway",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
+      "feature": "Bump",
+      "importance_mean": -5.677981933195353e-05,
+      "importance_std": 0.00011307560428689437
     },
     {
-      "feature": "Stop",
-      "importance_mean": -0.00032759157011744144,
-      "importance_std": 0.005243631396960386
-    },
-    {
-      "feature": "Station",
-      "importance_mean": -0.00048570306196767387,
-      "importance_std": 0.003830218212019134
-    },
-    {
-      "feature": "Visibility(mi)",
-      "importance_mean": -0.0007253883366900582,
-      "importance_std": 0.0077286709446220386
-    },
-    {
-      "feature": "Crossing",
-      "importance_mean": -0.0021863795615827573,
-      "importance_std": 0.009174215248786392
-    },
-    {
-      "feature": "Temperature(F)",
-      "importance_mean": -0.017914053974927246,
-      "importance_std": 0.018763395682904787
+      "feature": "DayOfWeek_Wednesday",
+      "importance_mean": -0.0001372607910968382,
+      "importance_std": 0.000349846490838294
     },
     {
       "feature": "DayOfWeek_Tuesday",
-      "importance_mean": -0.01835953936512455,
-      "importance_std": 0.009339934662315296
+      "importance_mean": -0.0003428981405039,
+      "importance_std": 0.00022732111206647383
     },
     {
-      "feature": "DayOfWeek_Thursday",
-      "importance_mean": -0.028172163234163376,
-      "importance_std": 0.013657152219969616
-    },
-    {
-      "feature": "DayOfWeek_Sunday",
-      "importance_mean": -0.028191977715292083,
-      "importance_std": 0.016846785846564287
-    },
-    {
-      "feature": "DayOfWeek_Friday",
-      "importance_mean": -0.036245526684683664,
-      "importance_std": 0.01517655925746842
-    },
-    {
-      "feature": "Junction",
-      "importance_mean": -0.05352774006514771,
-      "importance_std": 0.004103361195379616
+      "feature": "DayOfWeek_Monday",
+      "importance_mean": -0.0009176301615206106,
+      "importance_std": 0.0007270060135435378
     }
   ],
   "shap_top_5": [
-    "DayOfWeek_Friday",
-    "DayOfWeek_Thursday",
     "Distance(mi)",
-    "DayOfWeek_Wednesday",
-    "DayOfWeek_Saturday"
+    "State_freq",
+    "Weather_Condition_freq",
+    "Hour",
+    "Wind_Speed(mph)"
   ],
   "permutation_top_5": [
     "Distance(mi)",
+    "State_freq",
     "Weather_Condition_freq",
-    "DayOfWeek_Wednesday",
-    "Hour",
-    "DayOfWeek_Saturday"
+    "Wind_Speed(mph)",
+    "Traffic_Signal"
   ],
-  "agreement_count": 3,
+  "agreement_count": 4,
   "agreement_features": [
-    "DayOfWeek_Saturday",
-    "DayOfWeek_Wednesday",
-    "Distance(mi)"
+    "Distance(mi)",
+    "State_freq",
+    "Weather_Condition_freq",
+    "Wind_Speed(mph)"
   ]
 }

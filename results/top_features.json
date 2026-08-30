@@ -1,27 +1,27 @@
 [
   {
-    "feature": "DayOfWeek_Friday",
-    "mean_abs_shap": 0.22715664330918656,
-    "plain_english": "crash occurred on a Friday"
-  },
-  {
-    "feature": "DayOfWeek_Thursday",
-    "mean_abs_shap": 0.18100585531216867,
-    "plain_english": "crash occurred on a Thursday"
-  },
-  {
     "feature": "Distance(mi)",
-    "mean_abs_shap": 0.18055779529441293,
+    "mean_abs_shap": 0.7814873274294003,
     "plain_english": "length of road segment affected by the crash"
   },
   {
-    "feature": "DayOfWeek_Wednesday",
-    "mean_abs_shap": 0.17038070294575736,
-    "plain_english": "crash occurred on a Wednesday"
+    "feature": "State_freq",
+    "mean_abs_shap": 0.2751927714184209,
+    "plain_english": "how common crashes are in that state (frequency-encoded)"
   },
   {
-    "feature": "DayOfWeek_Saturday",
-    "mean_abs_shap": 0.15993780460761772,
-    "plain_english": "crash occurred on a Saturday"
+    "feature": "Weather_Condition_freq",
+    "mean_abs_shap": 0.12932054068980778,
+    "plain_english": "how common that weather condition is (frequency-encoded)"
+  },
+  {
+    "feature": "Hour",
+    "mean_abs_shap": 0.10538250927596345,
+    "plain_english": "hour of day the crash occurred"
+  },
+  {
+    "feature": "Wind_Speed(mph)",
+    "mean_abs_shap": 0.096328690802963,
+    "plain_english": "wind speed"
   }
 ]
