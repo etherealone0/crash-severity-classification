@@ -26,12 +26,13 @@ def dataset_summary():
     return len(combined), combined.value_counts()
 
 
-def comparison_table(baseline, smote, tuned, lgbm):
+def comparison_table(baseline, smote, tuned, lgbm, lgbm_tuned):
     rows = [
         ("Baseline (no balancing)", baseline),
         ("SMOTENC-balanced", smote),
         ("Tuned (Optuna)", tuned),
         ("LightGBM (class-weighted)", lgbm),
+        ("LightGBM (tuned)", lgbm_tuned),
     ]
     lines = [
         "| Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |",
@@ -51,11 +52,13 @@ def main():
     smote = load_json("smote_metrics.json")
     tuned = load_json("tuned_metrics.json")
     lgbm = load_json("lgbm_metrics.json")
+    lgbm_tuned = load_json("lgbm_tuned_metrics.json")
+    threshold_tuned = load_json("lgbm_threshold_tuned_metrics.json")
     top_features = load_json("top_features.json")
     perm = load_json("permutation_importance.json")
 
     n_total, class_counts = dataset_summary()
-    table = comparison_table(baseline, smote, tuned, lgbm)
+    table = comparison_table(baseline, smote, tuned, lgbm, lgbm_tuned)
 
     severe_recall_baseline = baseline["per_class"]["Severe"]["recall"]
     severe_recall_smote = smote["per_class"]["Severe"]["recall"]
@@ -63,6 +66,10 @@ def main():
     macro_f1_tuned = tuned["macro_f1"]
     macro_f1_lgbm = lgbm["macro_f1"]
     severe_recall_lgbm = lgbm["per_class"]["Severe"]["recall"]
+    macro_f1_lgbm_tuned = lgbm_tuned["macro_f1"]
+    moderate_recall_raw = lgbm_tuned["per_class"]["Moderate"]["recall"]
+    moderate_recall_targeted = threshold_tuned["per_class"]["Moderate"]["recall"]
+    macro_f1_targeted = threshold_tuned["macro_f1"]
 
     class_lines = "\n".join(f"  - {cls}: {count:,}" for cls, count in class_counts.items())
 
@@ -72,7 +79,10 @@ def main():
 
     report = f"""# Project Summary
 
-Every number referenced by the 4 resume bullets, in one place.
+Every number referenced by the resume bullets, in one place. Kept as a full
+ablation history (baseline -> SMOTENC -> tuned SVC -> LightGBM -> tuned
+LightGBM) rather than just the winning number, since the iteration story is
+itself part of what this project demonstrates.
 
 ## Dataset
 
@@ -80,19 +90,21 @@ Every number referenced by the 4 resume bullets, in one place.
 - Class distribution:
 {class_lines}
 
-## Model comparison (test set, all four trained/evaluated the same way)
+## Model comparison (test set, all five trained/evaluated the same way)
 
 {table}
 
 ## Key deltas
 
-- **Bullet 1 (headline):** macro-F1 {macro_f1_tuned:.1%} across 3 severity classes on {n_total:,}+ crash records (best model: LightGBM at {macro_f1_lgbm:.1%})
-- **Bullet 2 (SMOTENC):** Severe-class recall {severe_recall_baseline:.1%} (baseline) -> {severe_recall_smote:.1%} (SMOTENC)
-- **Bullet 3 (tuning):** macro-F1 {macro_f1_smote:.1%} (default params) -> {macro_f1_tuned:.1%} (tuned), via Optuna over {tuned['n_trials']} trials of {tuned['cv_folds']}-fold CV (best params: {tuned['best_params']})
-- **Bullet 4 (interpretability):** top feature is {top_features[0]['feature']} ({top_features[0]['plain_english']}), across {SHAP_EXPLAIN_SIZE} test predictions, validated against permutation importance ({perm['agreement_count']}/5 top features agree)
-- **Bullet 5 (tree ensemble):** LightGBM, trained on the full {lgbm['train_rows']:,}-row split with class-weighted balancing instead of SMOTENC, reaches {macro_f1_lgbm:.1%} macro-F1 and {severe_recall_lgbm:.1%} Severe recall -- best on both at once, beating every SVC variant
+- **Headline:** best model is tuned LightGBM at {macro_f1_lgbm_tuned:.1%} macro-F1 across 3 severity classes on {n_total:,}+ crash records
+- **SMOTENC:** Severe-class recall {severe_recall_baseline:.1%} (baseline) -> {severe_recall_smote:.1%} (SMOTENC)
+- **SVC tuning:** macro-F1 {macro_f1_smote:.1%} (default params) -> {macro_f1_tuned:.1%} (tuned), via Optuna over {tuned['n_trials']} trials of {tuned['cv_folds']}-fold CV (best params: {tuned['best_params']})
+- **Tree ensemble:** LightGBM, trained on the full {lgbm['train_rows']:,}-row split with class-weighted balancing instead of SMOTENC, reaches {macro_f1_lgbm:.1%} macro-F1 and {severe_recall_lgbm:.1%} Severe recall -- beating every SVC variant on both at once
+- **Tree ensemble tuning:** Optuna over {lgbm_tuned['n_trials']} trials tuning n_estimators/max_depth/learning_rate plus per-class weighting pushes macro-F1 to {macro_f1_lgbm_tuned:.1%} (CV score {lgbm_tuned['cv_macro_f1']:.1%}, so no leakage-driven inflation)
+- **Interpretability:** top feature is {top_features[0]['feature']} ({top_features[0]['plain_english']}), via exact TreeExplainer SHAP values on {SHAP_EXPLAIN_SIZE:,} test predictions, validated against permutation importance ({perm['agreement_count']}/5 top features agree)
+- **Targeting Moderate directly:** macro-F1-optimal thresholds barely move Moderate recall, but deliberately boosting Moderate's decision weight moves recall {moderate_recall_raw:.1%} -> {moderate_recall_targeted:.1%}, at the cost of macro-F1 dropping to {macro_f1_targeted:.1%} -- a real, explicit tradeoff rather than a free win
 
-## Top 5 SHAP features
+## Top 5 SHAP features (tuned LightGBM, TreeExplainer)
 
 {chr(10).join(shap_lines)}
 

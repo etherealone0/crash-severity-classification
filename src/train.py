@@ -159,7 +159,7 @@ def load_metrics_json(filename):
         return json.load(f)
 
 
-def plot_confusion_matrix(cm_matrix, labels, out_path):
+def plot_confusion_matrix(cm_matrix, labels, out_path, title="Final Tuned SVC - Confusion Matrix (Test Set)"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -169,7 +169,7 @@ def plot_confusion_matrix(cm_matrix, labels, out_path):
     sns.heatmap(cm_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=ax)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
-    ax.set_title("Final Tuned SVC - Confusion Matrix (Test Set)")
+    ax.set_title(title)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

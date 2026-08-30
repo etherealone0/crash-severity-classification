@@ -1,44 +1,50 @@
 # Project Summary
 
-Every number referenced by the 4 resume bullets, in one place.
+Every number referenced by the resume bullets, in one place. Kept as a full
+ablation history (baseline -> SMOTENC -> tuned SVC -> LightGBM -> tuned
+LightGBM) rather than just the winning number, since the iteration story is
+itself part of what this project demonstrates.
 
 ## Dataset
 
-- Total modeling rows (train + test, post-dedup): 397,358
+- Total modeling rows (train + test, post-dedup): 1,943,711
 - Class distribution:
-  - Minor: 319,696
-  - Moderate: 67,214
-  - Severe: 10,448
+  - Minor: 1,558,464
+  - Moderate: 335,401
+  - Severe: 49,846
 
-## Model comparison (test set, all four trained/evaluated the same way)
+## Model comparison (test set, all five trained/evaluated the same way)
 
 | Variant | Accuracy | Macro-F1 | Minor Recall | Moderate Recall | Severe Recall |
 |---|---|---|---|---|---|
-| Baseline (no balancing) | 0.805 | 0.297 | 1.000 | 0.000 | 0.000 |
-| SMOTENC-balanced | 0.301 | 0.251 | 0.217 | 0.674 | 0.459 |
-| Tuned (Optuna) | 0.679 | 0.394 | 0.751 | 0.431 | 0.042 |
-| LightGBM (class-weighted) | 0.552 | 0.443 | 0.500 | 0.761 | 0.816 |
+| Baseline (no balancing) | 0.802 | 0.297 | 1.000 | 0.000 | 0.000 |
+| SMOTENC-balanced | 0.374 | 0.291 | 0.299 | 0.732 | 0.296 |
+| Tuned (Optuna) | 0.657 | 0.387 | 0.711 | 0.499 | 0.025 |
+| LightGBM (class-weighted) | 0.550 | 0.442 | 0.496 | 0.759 | 0.824 |
+| LightGBM (tuned) | 0.786 | 0.563 | 0.837 | 0.610 | 0.389 |
 
 ## Key deltas
 
-- **Bullet 1 (headline):** macro-F1 39.4% across 3 severity classes on 397,358+ crash records (best model: LightGBM at 44.3%)
-- **Bullet 2 (SMOTENC):** Severe-class recall 0.0% (baseline) -> 45.9% (SMOTENC)
-- **Bullet 3 (tuning):** macro-F1 25.1% (default params) -> 39.4% (tuned), via Optuna over 8 trials of 3-fold CV (best params: {'C': 21.368329072358772, 'gamma': 0.0011526449540315614})
-- **Bullet 4 (interpretability):** top feature is DayOfWeek_Friday (crash occurred on a Friday), across 200 test predictions, validated against permutation importance (3/5 top features agree)
-- **Bullet 5 (tree ensemble):** LightGBM, trained on the full 317,886-row split with class-weighted balancing instead of SMOTENC, reaches 44.3% macro-F1 and 81.6% Severe recall -- best on both at once, beating every SVC variant
+- **Headline:** best model is tuned LightGBM at 56.3% macro-F1 across 3 severity classes on 1,943,711+ crash records
+- **SMOTENC:** Severe-class recall 0.0% (baseline) -> 29.6% (SMOTENC)
+- **SVC tuning:** macro-F1 29.1% (default params) -> 38.7% (tuned), via Optuna over 8 trials of 3-fold CV (best params: {'C': 21.368329072358772, 'gamma': 0.0011526449540315614})
+- **Tree ensemble:** LightGBM, trained on the full 1,554,968-row split with class-weighted balancing instead of SMOTENC, reaches 44.2% macro-F1 and 82.4% Severe recall -- beating every SVC variant on both at once
+- **Tree ensemble tuning:** Optuna over 60 trials tuning n_estimators/max_depth/learning_rate plus per-class weighting pushes macro-F1 to 56.3% (CV score 54.9%, so no leakage-driven inflation)
+- **Interpretability:** top feature is Distance(mi) (length of road segment affected by the crash), via exact TreeExplainer SHAP values on 20,000 test predictions, validated against permutation importance (4/5 top features agree)
+- **Targeting Moderate directly:** macro-F1-optimal thresholds barely move Moderate recall, but deliberately boosting Moderate's decision weight moves recall 61.0% -> 81.3%, at the cost of macro-F1 dropping to 53.7% -- a real, explicit tradeoff rather than a free win
 
-## Top 5 SHAP features
+## Top 5 SHAP features (tuned LightGBM, TreeExplainer)
 
 | Rank | Feature | Mean \|SHAP\| | Plain English |
 |---|---|---|---|
-| 1 | DayOfWeek_Friday | 0.2272 | crash occurred on a Friday |
-| 2 | DayOfWeek_Thursday | 0.1810 | crash occurred on a Thursday |
-| 3 | Distance(mi) | 0.1806 | length of road segment affected by the crash |
-| 4 | DayOfWeek_Wednesday | 0.1704 | crash occurred on a Wednesday |
-| 5 | DayOfWeek_Saturday | 0.1599 | crash occurred on a Saturday |
+| 1 | Distance(mi) | 0.7815 | length of road segment affected by the crash |
+| 2 | State_freq | 0.2752 | how common crashes are in that state (frequency-encoded) |
+| 3 | Weather_Condition_freq | 0.1293 | how common that weather condition is (frequency-encoded) |
+| 4 | Hour | 0.1054 | hour of day the crash occurred |
+| 5 | Wind_Speed(mph) | 0.0963 | wind speed |
 
 ## Permutation importance cross-check
 
-- SHAP top 5: ['DayOfWeek_Friday', 'DayOfWeek_Thursday', 'Distance(mi)', 'DayOfWeek_Wednesday', 'DayOfWeek_Saturday']
-- Permutation top 5: ['Distance(mi)', 'Weather_Condition_freq', 'DayOfWeek_Wednesday', 'Hour', 'DayOfWeek_Saturday']
-- Agreement: 3/5 features overlap -> ['DayOfWeek_Saturday', 'DayOfWeek_Wednesday', 'Distance(mi)']
+- SHAP top 5: ['Distance(mi)', 'State_freq', 'Weather_Condition_freq', 'Hour', 'Wind_Speed(mph)']
+- Permutation top 5: ['Distance(mi)', 'State_freq', 'Weather_Condition_freq', 'Wind_Speed(mph)', 'Traffic_Signal']
+- Agreement: 4/5 features overlap -> ['Distance(mi)', 'State_freq', 'Weather_Condition_freq', 'Wind_Speed(mph)']
