@@ -11,6 +11,25 @@ dashboard.
 Dataset: [US Accidents (2016-2023) by Sobhan Moosavi](https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents)
 (~7.7M rows, 46 columns), stratify-sampled down to 2M rows for local iteration.
 
+## Highlights
+
+- Built and benchmarked 5 crash-severity classifier variants (SVC baseline/SMOTENC/Optuna-tuned,
+  LightGBM class-weighted/Optuna-tuned) on 1.9M+ crash records, with the best model -- tuned
+  LightGBM -- reaching 56.3% macro-F1 across 3 severity classes, a 91% relative improvement over
+  the untuned baseline.
+- Compared two class-imbalance strategies head-to-head -- SMOTENC oversampling vs. class-weighted
+  loss -- lifting Severe-crash recall from 0% (baseline) to 82.4% (class-weighted LightGBM); also
+  ran targeted per-class threshold tuning to move Moderate-class recall from 61% to 81% on demand,
+  with the precision tradeoff made explicit rather than hidden behind an averaged metric.
+- Ran two leak-free Optuna hyperparameter searches (SVC and LightGBM) using `cross_val_score`
+  inside an `imblearn.Pipeline` to eliminate resampling leakage, improving LightGBM macro-F1 27%
+  (44.2% -> 56.3%) with cross-validation and held-out test scores within 1.4 points of each other,
+  confirming the tuning signal was real.
+- Replaced an approximate, ~2-hour SHAP `KernelExplainer` run (200 samples) with exact
+  `TreeExplainer` values on 20,000 samples in seconds, identifying crash-affected road distance as
+  the dominant predictor and cross-validating the top-5 feature ranking against permutation
+  importance (4/5 agreement).
+
 ## Setup
 
 ```bash
