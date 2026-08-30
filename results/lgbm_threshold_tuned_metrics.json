@@ -1,0 +1,159 @@
+{
+  "accuracy": 0.7294022014544314,
+  "macro_f1": 0.5368167392325177,
+  "per_class": {
+    "Minor": {
+      "precision": 0.9323031428771473,
+      "recall": 0.7262443293743223,
+      "f1-score": 0.8164733082415234,
+      "support": 311694.0
+    },
+    "Moderate": {
+      "precision": 0.40426320942237515,
+      "recall": 0.8125521765056649,
+      "f1-score": 0.5399092656061176,
+      "support": 67080.0
+    },
+    "Severe": {
+      "precision": 0.2410007199424046,
+      "recall": 0.2686327615608386,
+      "f1-score": 0.25406764384991226,
+      "support": 9969.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Minor",
+      "Moderate",
+      "Severe"
+    ],
+    "matrix": [
+      [
+        226366,
+        78586,
+        6742
+      ],
+      [
+        10882,
+        54506,
+        1692
+      ],
+      [
+        5555,
+        1736,
+        2678
+      ]
+    ]
+  },
+  "weights": {
+    "Minor": 1.0,
+    "Moderate": 2.0,
+    "Severe": 0.8730856225194146
+  },
+  "oof_macro_f1_raw": 0.5542464671705702,
+  "oof_moderate_recall_raw": 0.603144860625495,
+  "oof_sweep": [
+    {
+      "w_mod": 1.0,
+      "moderate_recall": 0.603144860625495,
+      "moderate_precision": 0.5006815156908966,
+      "macro_f1": 0.5552042892501977
+    },
+    {
+      "w_mod": 1.5,
+      "moderate_recall": 0.7284177178511407,
+      "moderate_precision": 0.4393284477636285,
+      "macro_f1": 0.5425519827211319
+    },
+    {
+      "w_mod": 2.0,
+      "moderate_recall": 0.8040064133521355,
+      "moderate_precision": 0.40269553775300904,
+      "macro_f1": 0.524480778923247
+    },
+    {
+      "w_mod": 3.0,
+      "moderate_recall": 0.8680626654046014,
+      "moderate_precision": 0.3659633034994421,
+      "macro_f1": 0.4955274992923471
+    },
+    {
+      "w_mod": 4.0,
+      "moderate_recall": 0.8993953677052948,
+      "moderate_precision": 0.34329722834622445,
+      "macro_f1": 0.47254717926988743
+    },
+    {
+      "w_mod": 5.0,
+      "moderate_recall": 0.9196399250487762,
+      "moderate_precision": 0.32588784534925114,
+      "macro_f1": 0.451442234486634
+    },
+    {
+      "w_mod": 7.0,
+      "moderate_recall": 0.9448297177738714,
+      "moderate_precision": 0.2995070573466826,
+      "macro_f1": 0.4177874454698085
+    },
+    {
+      "w_mod": 10.0,
+      "moderate_recall": 0.9651129097687716,
+      "moderate_precision": 0.27159950204130445,
+      "macro_f1": 0.37354953860801293
+    }
+  ],
+  "macro_f1_optimal_weights": {
+    "Minor": 1.0,
+    "Moderate": 1.009373890005235,
+    "Severe": 0.8730856225194146
+  },
+  "macro_f1_optimal_test_metrics": {
+    "accuracy": 0.7914354727930792,
+    "macro_f1": 0.5653155199386203,
+    "per_class": {
+      "Minor": {
+        "precision": 0.901842869002614,
+        "recall": 0.8434201492489428,
+        "f1-score": 0.8716536581807571,
+        "support": 311694.0
+      },
+      "Moderate": {
+        "precision": 0.5043130756859496,
+        "recall": 0.6170542635658914,
+        "f1-score": 0.5550162246238837,
+        "support": 67080.0
+      },
+      "Severe": {
+        "precision": 0.22314540059347182,
+        "recall": 0.33945230213662353,
+        "f1-score": 0.2692766770112199,
+        "support": 9969.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "Minor",
+        "Moderate",
+        "Severe"
+      ],
+      "matrix": [
+        [
+          262889,
+          40098,
+          8707
+        ],
+        [
+          22614,
+          41392,
+          3074
+        ],
+        [
+          5999,
+          586,
+          3384
+        ]
+      ]
+    }
+  },
+  "note": "Per-class probability threshold tuning on the tuned LightGBM's predict_proba output, targeting Moderate recall directly rather than macro-F1: macro-F1-optimal weights (1.0, 1.009, 0.873) barely move Moderate recall (61.0% -> 61.7%) because macro-F1 penalizes the precision Moderate loses as it's boosted. Deliberately targeting Moderate with weights (1.0, 2.0, 0.873) moves recall to 81.3% on the test set, at the cost of macro-F1 dropping from 0.5630 to 0.5368 and Moderate precision falling correspondingly -- a real tradeoff, not a free lunch."
+}
