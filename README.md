@@ -15,7 +15,7 @@ Dataset: [US Accidents (2016-2023) by Sobhan Moosavi](https://www.kaggle.com/dat
 
 - Built and benchmarked 5 crash-severity classifier variants (SVC baseline/SMOTENC/Optuna-tuned,
   LightGBM class-weighted/Optuna-tuned) on 1.9M+ crash records, with the best model -- tuned
-  LightGBM -- reaching 56.3% macro-F1 across 3 severity classes, a 91% relative improvement over
+  LightGBM -- reaching 56.3% macro-F1 across 3 severity classes, a ~90% relative improvement over
   the untuned baseline.
 - Compared two class-imbalance strategies head-to-head -- SMOTENC oversampling vs. class-weighted
   loss -- lifting Severe-crash recall from 0% (baseline) to 82.4% (class-weighted LightGBM); also
@@ -52,7 +52,7 @@ Run in order -- each stage depends on the previous one's output:
 
 ```bash
 python src/data_prep.py            # sample, clean, dedup, split -> data/processed/{train,test}.parquet
-python src/train.py                # baseline -> SMOTENC -> final consolidated report
+python src/train.py                # baseline -> SMOTENC
 python src/tune.py                 # Optuna search (SVC) -> models/final_svc.joblib
 python src/train_ensemble.py       # LightGBM (class-weighted) -> models/final_lgbm.joblib
 python src/tune_ensemble.py        # Optuna search (LightGBM) -> models/final_lgbm_tuned.joblib
@@ -102,8 +102,8 @@ near-duplicate crash records):
 
 - SMOTENC alone takes Severe-class recall from 0% to 29.6%, at the cost of
   overall macro-F1 (an untuned SVC overcorrects toward the minority classes).
-- Optuna tuning of the SVC (8 trials, 3-fold CV, objective evaluated honestly
-  -- see "CV leakage fix" below) recovers macro-F1 to 0.387, better than either
+- Optuna tuning of the SVC (8 trials, 3-fold cross-validation, objective evaluated honestly
+  -- see "Cross-validation leakage fix" below) recovers macro-F1 to 0.387, better than either
   untuned SVC variant, but trades away most of SMOTENC's Severe-recall gain to
   get there (0.025 vs. 0.296) -- a real precision/recall tension worth knowing
   about rather than hiding.
@@ -111,7 +111,7 @@ near-duplicate crash records):
   "Tree ensemble" below) beats every SVC variant on both macro-F1 and Severe
   recall at the same time, with no precision/recall tradeoff to apologize for.
 - Tuning LightGBM itself (60 trials over n_estimators/max_depth/learning_rate
-  plus per-class weighting, same leak-free CV discipline as the SVC study)
+  plus per-class weighting, same leak-free cross-validation discipline as the SVC study)
   pushes macro-F1 to 0.563 -- the best result of any variant, and the model
   actually deployed and interpreted below.
 - Top 5 SHAP features (tuned LightGBM, TreeExplainer): **Distance(mi)**,
@@ -120,13 +120,13 @@ near-duplicate crash records):
   for #2), and is also the #1 feature by permutation importance -- 4 of 5
   features agree between the two methods (see "Interpretability" below).
 
-## CV leakage fix (and why the numbers moved)
+## Cross-validation leakage fix (and why the numbers moved)
 
 An earlier version of `src/tune.py` applied SMOTENC once to the whole training
 subsample, then ran cross-validation on top of that already-resampled data.
 That leaks information: synthetic minority points generated from what became a
 validation fold's real neighbors can end up in the training fold (and vice
-versa), so folds aren't independent. The symptom was a CV macro-F1 during the
+versa), so folds aren't independent. The symptom was a cross-validation macro-F1 during the
 search (~0.85) wildly higher than the honest held-out test score (0.350).
 
 The fix: `src/tune.py` now wraps SMOTENC and the SVC in an
@@ -134,7 +134,7 @@ The fix: `src/tune.py` now wraps SMOTENC and the SVC in an
 imbalanced* training subsample. That pipeline gets cloned and refit inside
 `cross_val_score` for every fold, so SMOTENC only ever sees that fold's
 training rows -- validation folds stay real and untouched. After the fix,
-Optuna's best CV score (0.382) lands close to the true test score (0.387),
+Optuna's best cross-validation score (0.382) lands close to the true test score (0.387),
 which is the actual signal a leak-free search should produce.
 
 Two costs came with the fix, both handled and documented in `src/tune.py`:
@@ -149,7 +149,7 @@ Two costs came with the fix, both handled and documented in `src/tune.py`:
 validation runs on the original imbalanced data with `cross_val_score`, honest
 end to end. There's no resampler in that pipeline to leak across folds in the
 first place (class-weighting replaces SMOTENC for LightGBM), so the risk this
-guards against is milder there -- but the CV score (0.549) still lands close
+guards against is milder there -- but the cross-validation score (0.549) still lands close
 to the test score (0.563), confirming the search wasn't fooling itself either
 way.
 
@@ -164,7 +164,7 @@ SVC variants, while always evaluating on the full, untouched test set.
 LightGBM doesn't share that ceiling: `src/train_ensemble.py` trains on the
 full 1,554,968-row training split directly, and `src/tune_ensemble.py`
 searches hyperparameters on a 200,000-row subsample for speed (a single
-3-fold CV pass over the full split took ~2 minutes per trial -- too slow for
+3-fold cross-validation pass over the full split took ~2 minutes per trial -- too slow for
 a 60-trial search) before refitting the final model on the full split.
 
 ## Tree ensemble (`src/train_ensemble.py`, `src/tune_ensemble.py`)
@@ -178,7 +178,7 @@ categorical-flavored features and don't have SVC's O(n^2-n^3) scaling wall.
 `train_lgbm()` trains a default-hyperparameter LightGBM with
 `class_weight="balanced"` on the full training split as a direct alternative
 to SMOTENC for handling the imbalance -- and already beats every SVC variant.
-`train_tuned_lgbm()` then runs a 60-trial Optuna study (leak-free CV, same
+`train_tuned_lgbm()` then runs a 60-trial Optuna study (leak-free cross-validation, same
 principle as the SVC fix) over `n_estimators`, `max_depth`, `learning_rate`,
 and per-class weight multipliers, refits the winning configuration on the full
 1,554,968-row split, and pushes macro-F1 to 0.563 -- the best result of any
@@ -199,7 +199,7 @@ Per-class probability threshold tuning counters majority-class pull directly:
 multiply each class's predicted probability by a weight before taking argmax,
 so Moderate/Severe don't need to out-score Minor's raw probability to win.
 Weights are grid-searched on out-of-fold predictions from the training set
-(3-fold CV, same hyperparameters as the deployed model) so the search never
+(3-fold cross-validation, same hyperparameters as the deployed model) so the search never
 touches the test set, then applied once to the deployed model's test-set
 probabilities.
 
